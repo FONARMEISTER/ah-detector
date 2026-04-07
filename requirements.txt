@@ -49,3 +49,6 @@ librosa==0.10.2.post1
 
 # === Text exporter (impl=3) ===
 catboost==1.2.8
+
+# === Visual Transformers ===
+vit-pytorch==1.19.4

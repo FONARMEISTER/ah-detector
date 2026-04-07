@@ -1,2 +1,5 @@
 data/
 public/
+yolo11x-seg.pt*
+__pycache__/
+.DS_Store*
