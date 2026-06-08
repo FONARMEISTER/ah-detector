@@ -1,0 +1,63 @@
+======================================================================
+Multimodal Fusion-Head Training — cache-driven
+======================================================================
+Classifier          : svm
+Cache dir           : /home3/iasarantsev/multimodal/cache
+Active modalities   : ['text', 'audio', 'video']
+Fusion input dim    : 768 + 256 + 768 = 1792
+Seed                : 42
+Fusion weights path : /home3/iasarantsev/multimodal/weights/fusion_bah_best.pth
+======================================================================
+
+[Cache] Loading multi-view embedding cache ...
+[CachedFusionDataset] N=778  K_t=3  K_a=3  K_v=3  random_view=False
+[CachedFusionDataset] N=124  K_t=1  K_a=1  K_v=1  random_view=False
+[CachedFusionDataset] N=525  K_t=1  K_a=1  K_v=1  random_view=False
+  [train]    778 videos  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  K_t=3 K_a=3 K_v=3
+  [val  ]    124 videos  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  K_t=1 K_a=1 K_v=1
+  [test ]    525 videos  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  K_t=1 K_a=1 K_v=1
+
+[svm] X_train: (21006, 1792)  (21,006 rows after view-expansion)
+[svm] X_val  : (124, 1792)
+[svm] X_test : (525, 1792)
+[svm] y_train class balance: {1: 10395, 0: 10611}
+[svm] y_val   class balance: {1: 75, 0: 49}
+[svm] y_test  class balance: {1: 318, 0: 207}
+[svm] Estimator:
+  SVC(class_weight='balanced', random_state=42)
+
+[svm] Fitting ...
+[svm] Fit done in 69.0s
+[svm] Val  macro-F1: 0.5262  |  acc: 0.5323  |  pred dist: {1: 63, 0: 61}
+
+======================================================================
+Test Results — Multimodal Fusion (text + audio + video) — svm
+======================================================================
+[Test] Label distribution : {1: 318, 0: 207}
+[Test] Prediction dist.   : {0: 274, 1: 251}
+[Test] Macro-F1  : 0.6298
+[Test] Accuracy  : 0.6324
+
+              precision    recall  f1-score   support
+
+      No A-H     0.5255    0.6957    0.5988       207
+    With A-H     0.7490    0.5912    0.6608       318
+
+    accuracy                         0.6324       525
+   macro avg     0.6373    0.6434    0.6298       525
+weighted avg     0.6609    0.6324    0.6363       525
+
+  Weights saved          : /home3/iasarantsev/multimodal/weights/fusion_bah_best.joblib
+  Val   F1               : 0.5262
+  Val   accuracy         : 0.5323
+  Test  F1               : 0.6298
+  Test  accuracy         : 0.6324
+  Fit time               : 69.0s
+
+======================================================================
+Multimodal Fusion Training Summary
+======================================================================
+  Classifier             : svm
+  Active modalities      : ['text', 'audio', 'video']
+  Fusion input dim       : 768 + 256 + 768 = 1792
+======================================================================

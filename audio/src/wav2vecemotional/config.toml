@@ -1,0 +1,43 @@
+# ============================================================
+# BAH Dataset — Audio Classification Training Configuration
+# ============================================================
+
+[data]
+num_classes = 2
+class_names = ["No A-H", "With A-H"]
+
+[audio]
+sample_rate     = 16000   # Hz — wav2vec2 native sample rate
+max_length_sec  = 30.0    # truncate/pad all clips to this duration
+
+[training]
+epochs        = 20
+batch_size    = 8         # audio tensors are large; keep small
+learning_rate = 2e-5
+weight_decay  = 1e-2
+num_workers   = 0         # macOS/MPS: keep at 0 to avoid kernel crashes
+seed          = 42
+grad_clip     = 1.0
+scheduler     = "cosine"  # "cosine" | "step" | "none"
+early_stopping_patience = 5
+
+[wav2vec2emotional]
+# ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+# Already fine-tuned on emotion recognition (7 classes).
+# We replace its head with a 2-class A/H head and fine-tune the whole model
+# with a low LR — the emotion representations transfer well to A/H detection.
+model_name    = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+freeze_feature_extractor = true   # always freeze the CNN feature extractor
+freeze_layers = 20                # freeze first 20/24 transformer layers (xlsr-large has 24)
+label_smoothing = 0.1     # CE label smoothing — softer targets
+
+[wav2vec2emotional.training]
+epochs        = 20
+batch_size    = 4         # xlsr-large is bigger than wav2vec2-base; keep batch small
+learning_rate = 1e-5      # lower LR — model already fine-tuned, needs gentle adaptation
+weight_decay  = 5e-2
+early_stopping_patience = 5
+
+[wav2vec2emotional.output]
+weights_dir  = "weights"
+weights_name = "wav2vec2emotional_bah_best_2.pth"

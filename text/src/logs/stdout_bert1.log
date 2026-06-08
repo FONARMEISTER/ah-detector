@@ -1,0 +1,174 @@
+======================================================================
+Text Training Pipeline — BAH A/H Classification  [bert]
+======================================================================
+Device        : cpu
+Model key     : bert
+Model name    : bert-base-uncased
+Max length    : 128 tokens
+Freeze layers : 8
+Batch size    : 16
+Epochs        : 20
+LR            : 2e-05  (encoder: 2.0000000000000003e-06)
+Weight decay  : 0.05
+Label smooth  : 0.1
+Patience      : 5
+Grad clip     : 1.0
+Seed          : 42
+Weights path  : /home3/iasarantsev/text/weights/bert_bah_best.pth
+======================================================================
+
+[Tokenizer] Loading AutoTokenizer from bert-base-uncased ...
+  Vocab size     : 30,522
+  Model max len  : 512
+  Padding token  : [PAD]
+  Mask token     : [MASK]
+  Using max_len  : 128
+
+[Augmentation] train=True  mask_prob=0.25  drop_prob=0.15
+
+[Dataset] Loading text splits ...
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+[Dataset] Loaded in 0.0s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  words: avg=58, min=1, max=234
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  words: avg=58, min=1, max=195
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  words: avg=61, min=1, max=278
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_ids', 'token_type_ids', 'attention_mask']
+  input_ids        : shape=torch.Size([128]), dtype=torch.int64
+  token_type_ids   : shape=torch.Size([128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([128]), dtype=torch.int64
+  Decoded text    : my hobby is traveling. like to visit places, countries, different tourist attractions. though costs a lot money, i prefe...
+  Active tokens   : 128/128
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 48  |  Val: 8  |  Test: 33
+
+[Probe] Fetching first train batch ...
+  input_ids        : shape=torch.Size([16, 128]), dtype=torch.int64
+  token_type_ids   : shape=torch.Size([16, 128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([16, 128]), dtype=torch.int64
+  labels       : [0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+  batch time   : 0.01s
+
+[Model] Loading AutoModelForSequenceClassification from bert-base-uncased ...
+[Model] Backbone has 12 encoder layers
+[Model] Freezing: embeddings + first 8/12 encoder layers
+[Model] Trainable: last 4 encoder layers + classifier head
+[Model] Parameters: 28,943,618 trainable  |  80,540,160 frozen  |  109,483,778 total  (26.4% trainable)
+
+[Model] Architecture summary:
+  Hidden size    : 768
+  Num heads      : 12
+  Num layers     : 12
+  Dropout        : 0.1
+  Attn dropout   : 0.1
+  Max position   : 512
+
+[Loss] CrossEntropyLoss  label_smoothing=0.1  (class balancing handled by WeightedRandomSampler only)
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params  : 66 tensors, lr=2.00e-06
+  Classifier params: 2 tensors, lr=2.00e-05
+  Weight decay    : 0.05
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=2.00e-07
+
+======================================================================
+Starting training [bert] ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.6990  grad_norm=1.0436  logits_sample=[0.2985748052597046, 0.2422587275505066]  preds=[0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1]  labels=[1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0]
+Epoch   1/20  tr_loss=0.6965  tr_f1=0.5142  va_loss=0.6921  va_f1=0.4939  va_acc=0.5161  lr_enc=1.99e-06  lr_cls=1.99e-05  time=351s (7.00s/batch)
+         train preds: {0: 381, 1: 387}  |  val preds: {1: 75, 0: 49}
+  ✓ New best val F1=0.4939 — saved /home3/iasarantsev/text/weights/bert_bah_best.pth
+Epoch   2/20  tr_loss=0.6891  tr_f1=0.5419  va_loss=0.6980  va_f1=0.4095  va_acc=0.4355  lr_enc=1.96e-06  lr_cls=1.95e-05  time=357s (7.10s/batch)
+         train preds: {1: 431, 0: 337}  |  val preds: {1: 23, 0: 101}
+  ✗ No improvement (1/5)
+Epoch   3/20  tr_loss=0.6817  tr_f1=0.5648  va_loss=0.7131  va_f1=0.2937  va_acc=0.3952  lr_enc=1.90e-06  lr_cls=1.89e-05  time=369s (7.35s/batch)
+         train preds: {0: 519, 1: 249}  |  val preds: {0: 122, 1: 2}
+  ✗ No improvement (2/5)
+Epoch   4/20  tr_loss=0.6698  tr_f1=0.6235  va_loss=0.6947  va_f1=0.5130  va_acc=0.5161  lr_enc=1.83e-06  lr_cls=1.81e-05  time=351s (7.00s/batch)
+         train preds: {0: 365, 1: 403}  |  val preds: {1: 39, 0: 85}
+  ✓ New best val F1=0.5130 — saved /home3/iasarantsev/text/weights/bert_bah_best.pth
+Epoch   5/20  tr_loss=0.6444  tr_f1=0.6457  va_loss=0.7059  va_f1=0.5078  va_acc=0.5081  lr_enc=1.74e-06  lr_cls=1.71e-05  time=382s (7.62s/batch)
+         train preds: {1: 420, 0: 348}  |  val preds: {1: 46, 0: 78}
+  ✗ No improvement (1/5)
+Epoch   6/20  tr_loss=0.6295  tr_f1=0.6585  va_loss=0.7117  va_f1=0.5321  va_acc=0.5323  lr_enc=1.63e-06  lr_cls=1.59e-05  time=549s (11.11s/batch)
+         train preds: {1: 442, 0: 326}  |  val preds: {1: 51, 0: 73}
+  ✓ New best val F1=0.5321 — saved /home3/iasarantsev/text/weights/bert_bah_best.pth
+Epoch   7/20  tr_loss=0.6045  tr_f1=0.6808  va_loss=0.7074  va_f1=0.5337  va_acc=0.5484  lr_enc=1.51e-06  lr_cls=1.46e-05  time=349s (6.96s/batch)
+         train preds: {0: 368, 1: 400}  |  val preds: {1: 71, 0: 53}
+  ✓ New best val F1=0.5337 — saved /home3/iasarantsev/text/weights/bert_bah_best.pth
+Epoch   8/20  tr_loss=0.6151  tr_f1=0.6809  va_loss=0.7142  va_f1=0.5128  va_acc=0.5242  lr_enc=1.38e-06  lr_cls=1.32e-05  time=351s (6.99s/batch)
+         train preds: {1: 459, 0: 309}  |  val preds: {1: 68, 0: 56}
+  ✗ No improvement (1/5)
+Epoch   9/20  tr_loss=0.6114  tr_f1=0.6777  va_loss=0.7069  va_f1=0.5267  va_acc=0.5403  lr_enc=1.24e-06  lr_cls=1.16e-05  time=351s (6.99s/batch)
+         train preds: {0: 340, 1: 428}  |  val preds: {1: 70, 0: 54}
+  ✗ No improvement (2/5)
+Epoch  10/20  tr_loss=0.6186  tr_f1=0.6601  va_loss=0.7007  va_f1=0.5198  va_acc=0.5323  lr_enc=1.10e-06  lr_cls=1.01e-05  time=350s (6.97s/batch)
+         train preds: {1: 411, 0: 357}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (3/5)
+Epoch  11/20  tr_loss=0.6159  tr_f1=0.6783  va_loss=0.6993  va_f1=0.5589  va_acc=0.5645  lr_enc=9.59e-07  lr_cls=8.55e-06  time=351s (6.99s/batch)
+         train preds: {0: 370, 1: 398}  |  val preds: {1: 63, 0: 61}
+  ✓ New best val F1=0.5589 — saved /home3/iasarantsev/text/weights/bert_bah_best.pth
+Epoch  12/20  tr_loss=0.6045  tr_f1=0.6624  va_loss=0.6972  va_f1=0.5198  va_acc=0.5323  lr_enc=8.22e-07  lr_cls=7.04e-06  time=349s (6.95s/batch)
+         train preds: {0: 360, 1: 408}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (1/5)
+Epoch  13/20  tr_loss=0.6110  tr_f1=0.6717  va_loss=0.7011  va_f1=0.5454  va_acc=0.5484  lr_enc=6.91e-07  lr_cls=5.61e-06  time=350s (6.98s/batch)
+         train preds: {0: 374, 1: 394}  |  val preds: {1: 59, 0: 65}
+  ✗ No improvement (2/5)
+Epoch  14/20  tr_loss=0.6112  tr_f1=0.6926  va_loss=0.6964  va_f1=0.5454  va_acc=0.5484  lr_enc=5.71e-07  lr_cls=4.28e-06  time=345s (6.88s/batch)
+         train preds: {0: 441, 1: 327}  |  val preds: {1: 59, 0: 65}
+  ✗ No improvement (3/5)
+Epoch  15/20  tr_loss=0.5970  tr_f1=0.6939  va_loss=0.6919  va_f1=0.5407  va_acc=0.5484  lr_enc=4.64e-07  lr_cls=3.10e-06  time=346s (6.89s/batch)
+         train preds: {0: 409, 1: 359}  |  val preds: {1: 65, 0: 59}
+  ✗ No improvement (4/5)
+Epoch  16/20  tr_loss=0.5963  tr_f1=0.7005  va_loss=0.6896  va_f1=0.5504  va_acc=0.5645  lr_enc=3.72e-07  lr_cls=2.09e-06  time=353s (7.02s/batch)
+         train preds: {0: 387, 1: 381}  |  val preds: {1: 71, 0: 53}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 16
+
+======================================================================
+Training done in 97.7 min. Best val F1 = 0.5589
+======================================================================
+Training curves saved → /home3/iasarantsev/text/weights/bert_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — bert (bert-base-uncased)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {0: 211, 1: 314}
+[Test] Macro-F1  : 0.6661
+[Test] Accuracy  : 0.6800
+
+              precision    recall  f1-score   support
+
+      No A-H     0.5924    0.6039    0.5981       207
+    With A-H     0.7389    0.7296    0.7342       318
+
+    accuracy                         0.6800       525
+   macro avg     0.6656    0.6667    0.6661       525
+weighted avg     0.6811    0.6800    0.6805       525
+
+
+======================================================================
+Training Summary — bert
+======================================================================
+  Model           : bert-base-uncased
+  Frozen layers   : 8/12
+  Trainable params: 28,943,618 / 109,483,778
+  Best val F1     : 0.5589
+  Test F1         : 0.6661
+  Test accuracy   : 0.6800
+  Training time   : 97.7 min
+  Weights saved   : /home3/iasarantsev/text/weights/bert_bah_best.pth
+  Curves saved    : /home3/iasarantsev/text/weights/bert_training_curves.png
+======================================================================

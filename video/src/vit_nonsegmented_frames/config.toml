@@ -1,0 +1,43 @@
+[data]
+split_frames_dir   = "data/split-frames"
+segmented_dir      = "data/SegmentedFrames"
+frames_dir         = "data/Frames"
+num_classes        = 2
+class_names        = ["No A-H", "With A-H"]
+
+[image]
+image_size  = 224
+patch_size  = 16
+channels    = 3
+mean = [0.485, 0.456, 0.406]
+std  = [0.229, 0.224, 0.225]
+
+[training]
+epochs        = 20
+batch_size    = 32
+learning_rate = 1e-4
+weight_decay  = 1e-2
+num_workers   = 4        
+seed          = 42
+frame_subsample_every = 2
+scheduler     = "cosine"   # "cosine" | "step" | "none"
+early_stopping_patience = 3
+
+[augmentation]
+# Applied only to train split
+random_horizontal_flip  = true
+random_rotation_degrees = 10
+color_jitter_brightness = 0.2
+color_jitter_contrast   = 0.2
+color_jitter_saturation = 0.1
+color_jitter_hue        = 0.05
+
+[vit]
+model_name = "google/vit-base-patch16-224"
+
+[output]
+weights_dir    = "weights"
+weights_name   = "vit_bah_best.pth"
+save_last      = true
+last_name      = "vit_bah_last.pth"
+

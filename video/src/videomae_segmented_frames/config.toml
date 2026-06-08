@@ -1,0 +1,40 @@
+[data]
+split_frames_dir   = "data/split-frames"
+segmented_dir      = "data/SegmentedFrames"
+# Frames root used only for statistics comparison
+frames_dir         = "data/Frames"
+num_classes        = 2
+class_names        = ["No A-H", "With A-H"]
+
+[image]
+image_size  = 224
+patch_size  = 16
+channels    = 3
+mean = [0.485, 0.456, 0.406]
+std  = [0.229, 0.224, 0.225]
+
+[videomae]
+model_name   = "MCG-NJU/videomae-base"
+clip_len     = 16        # VideoMAE native: 16 frames per clip
+clip_stride  = 8         # sliding window stride (overlap = clip_len - stride)
+label_agg    = "any"     # "any" = clip is positive if ANY frame is 1
+freeze_layers = 8        # freeze embeddings + first N/12 encoder layers
+
+[videomae.training]
+epochs        = 30
+batch_size    = 4         # VideoMAE is memory-heavy; keep small
+learning_rate = 2e-5      # lower LR for video transformer fine-tuning
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[videomae.output]
+weights_dir  = "weights"
+weights_name = "videomae_bah_best.pth"
+
+[output]
+weights_dir    = "weights"
+weights_name   = "vit_bah_best.pth"
+# Also save last epoch
+save_last      = true
+last_name      = "vit_bah_last.pth"
+

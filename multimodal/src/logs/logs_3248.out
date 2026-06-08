@@ -1,0 +1,72 @@
+[Orchestrator] Running modalities: ['video']
+
+==============================================================================
+[Orchestrator] Modality: VIDEO
+==============================================================================
+
+======================================================================
+Video Embedding Extraction — BAH A/H Multimodal
+======================================================================
+Device          : cuda
+Cache dir       : /home3/iasarantsev/multimodal/cache
+K train         : 3
+K eval          : 1
+Augment train   : True
+Splits          : ['train', 'val', 'test']
+Force re-extract: False
+Batch size      : 32
+Seed            : 42
+Model           : microsoft/swin-tiny-patch4-window7-224
+Weights         : /home3/iasarantsev/video/weights/swin_bah_best.pth
+======================================================================
+
+[Backbone] Loading video encoder ...
+[VideoEmbedder] Loaded 233/233 keys from /home3/iasarantsev/video/weights/swin_bah_best.pth  (missing=0, unexpected=0)
+
+======================================================================
+[train] Video → /home3/iasarantsev/multimodal/cache/video_embs_train.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 31,696 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 5,026 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 21,146 clips (clip_len=32, stride=16)
+  [Split train] 778 videos  |  K=3  |  augment=True  |  clips=31,696  batch=32  workers=4
+  [Split train] Video view 1/3  [clean]
+  [Split train] Video view 2/3  [aug]
+  [Split train] Video view 3/3  [aug]
+[train] Done in 314.8 min  embeddings=(778, 3, 768)
+[train] Saved → /home3/iasarantsev/multimodal/cache/video_embs_train.pt
+
+======================================================================
+[val  ] Video → /home3/iasarantsev/multimodal/cache/video_embs_val.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 31,696 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 5,026 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 21,146 clips (clip_len=32, stride=16)
+  [Split val] 124 videos  |  K=1  |  augment=False  |  clips=5,026  batch=32  workers=4
+  [Split val] Video view 1/1  [clean]
+[val  ] Done in 30.6 min  embeddings=(124, 1, 768)
+[val  ] Saved → /home3/iasarantsev/multimodal/cache/video_embs_val.pt
+
+======================================================================
+[test ] Video → /home3/iasarantsev/multimodal/cache/video_embs_test.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 31,696 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 5,026 clips (clip_len=32, stride=16)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 21,146 clips (clip_len=32, stride=16)
+  [Split test] 525 videos  |  K=1  |  augment=False  |  clips=21,146  batch=32  workers=4
+  [Split test] Video view 1/1  [clean]
+[test ] Done in 54.0 min  embeddings=(525, 1, 768)
+[test ] Saved → /home3/iasarantsev/multimodal/cache/video_embs_test.pt
+
+All requested video splits processed.
+
+[Orchestrator] All requested modalities done in 399.8 min

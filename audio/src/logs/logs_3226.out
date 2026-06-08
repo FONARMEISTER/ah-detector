@@ -1,0 +1,164 @@
+======================================================================
+Audio Training Pipeline — BAH A/H Classification  [wav2vec2]
+======================================================================
+Device                   : cuda
+Model key                : wav2vec2
+Model name               : facebook/wav2vec2-base
+Sample rate              : 16000 Hz
+Max audio length         : 30.0s (480,000 samples)
+Freeze CNN extractor     : True
+Freeze transformer layers: 8
+Batch size               : 8
+Epochs                   : 20
+LR                       : 2e-05  (encoder: 2.0000000000000003e-06)
+Weight decay             : 0.05
+Label smooth             : 0.1
+Patience                 : 5
+Grad clip                : 1.0
+Seed                     : 42
+Weights path             : /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+======================================================================
+
+[FeatureExtractor] Loading Wav2Vec2FeatureExtractor from facebook/wav2vec2-base ...
+  Sampling rate        : 16000 Hz
+  do_normalize         : True
+  return_attention_mask: False
+
+[Augmentation] train=True  gain=0.2  snr_db=25.0  shift=0.5s  masks=2×0.05
+
+[Dataset] Loading audio splits ...
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+[Dataset] Loaded in 4.4s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_values']
+  input_values         : shape=torch.Size([480000]), dtype=torch.float32, min=-10.528, max=9.967
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 97  |  Val: 16  |  Test: 66
+
+[Probe] Fetching first train batch ...
+  input_values         : shape=torch.Size([8, 480000]), dtype=torch.float32
+  labels              : [0, 0, 0, 1, 1, 0, 1, 1]
+  batch time          : 0.16s
+
+[Model] Loading Wav2Vec2ForSequenceClassification from facebook/wav2vec2-base ...
+[Model] Replacing original head → 2-class A/H head
+[Model] CNN feature extractor frozen
+[Model] Wav2Vec2 transformer has 12 layers
+[Model] Freezing: first 8/12 transformer layers
+[Model] Trainable: last 4 transformer layers + projector + classifier head
+[Model] Parameters: 33,665,666 trainable  |  60,903,424 frozen  |  94,569,090 total  (35.6% trainable)
+
+[Model] Architecture summary:
+  Hidden size      : 768
+  Num attn heads   : 12
+  Num hidden layers: 12
+  Intermediate size: 3072
+  Hidden dropout   : 0.1
+  Attn dropout     : 0.1
+  Feat proj dropout: 0.1
+  Classifier proj  : 256
+
+[Loss] CrossEntropyLoss  label_smoothing=0.1  (class balancing handled by WeightedRandomSampler only)
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params   : 74 tensors, lr=2.00e-06
+  Classifier params: 4 tensors, lr=2.00e-05
+  Weight decay     : 0.05
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=2.00e-07
+
+======================================================================
+Starting training [wav2vec2] ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.6771  grad_norm=1.1636  logits_sample=[-0.019168494269251823, 0.0027424530126154423]  preds=[1, 0, 0, 1, 1, 1, 1, 1]  labels=[1, 0, 0, 1, 1, 1, 1, 1]
+Epoch   1/20  tr_loss=0.6846  tr_f1=0.5181  va_loss=0.6738  va_f1=0.4191  va_acc=0.5887  lr_enc=1.99e-06  lr_cls=1.99e-05  time=82s (0.65s/batch)
+         train preds: {1: 644, 0: 132}  |  val preds: {1: 116, 0: 8}
+  ✓ New best val F1=0.4191 — saved /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+Epoch   2/20  tr_loss=0.6784  tr_f1=0.5740  va_loss=0.6740  va_f1=0.4551  va_acc=0.6048  lr_enc=1.96e-06  lr_cls=1.95e-05  time=81s (0.65s/batch)
+         train preds: {1: 345, 0: 431}  |  val preds: {1: 114, 0: 10}
+  ✓ New best val F1=0.4551 — saved /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+Epoch   3/20  tr_loss=0.6767  tr_f1=0.5710  va_loss=0.6762  va_f1=0.4551  va_acc=0.6048  lr_enc=1.90e-06  lr_cls=1.89e-05  time=81s (0.65s/batch)
+         train preds: {0: 417, 1: 359}  |  val preds: {1: 114, 0: 10}
+  ✗ No improvement (1/5)
+Epoch   4/20  tr_loss=0.6642  tr_f1=0.5799  va_loss=0.6805  va_f1=0.4673  va_acc=0.6048  lr_enc=1.83e-06  lr_cls=1.81e-05  time=81s (0.66s/batch)
+         train preds: {0: 457, 1: 319}  |  val preds: {1: 112, 0: 12}
+  ✓ New best val F1=0.4673 — saved /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+Epoch   5/20  tr_loss=0.6633  tr_f1=0.6184  va_loss=0.6914  va_f1=0.4723  va_acc=0.6129  lr_enc=1.74e-06  lr_cls=1.71e-05  time=82s (0.66s/batch)
+         train preds: {1: 376, 0: 400}  |  val preds: {1: 113, 0: 11}
+  ✓ New best val F1=0.4723 — saved /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+Epoch   6/20  tr_loss=0.6575  tr_f1=0.6469  va_loss=0.6908  va_f1=0.4624  va_acc=0.5968  lr_enc=1.63e-06  lr_cls=1.59e-05  time=81s (0.66s/batch)
+         train preds: {0: 378, 1: 398}  |  val preds: {1: 111, 0: 13}
+  ✗ No improvement (1/5)
+Epoch   7/20  tr_loss=0.6588  tr_f1=0.6318  va_loss=0.7005  va_f1=0.4504  va_acc=0.5968  lr_enc=1.51e-06  lr_cls=1.46e-05  time=81s (0.66s/batch)
+         train preds: {0: 343, 1: 433}  |  val preds: {1: 113, 0: 11}
+  ✗ No improvement (2/5)
+Epoch   8/20  tr_loss=0.6516  tr_f1=0.6340  va_loss=0.7076  va_f1=0.4787  va_acc=0.6048  lr_enc=1.38e-06  lr_cls=1.32e-05  time=82s (0.66s/batch)
+         train preds: {1: 490, 0: 286}  |  val preds: {1: 110, 0: 14}
+  ✓ New best val F1=0.4787 — saved /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+Epoch   9/20  tr_loss=0.6586  tr_f1=0.6300  va_loss=0.7031  va_f1=0.4787  va_acc=0.6048  lr_enc=1.24e-06  lr_cls=1.16e-05  time=81s (0.66s/batch)
+         train preds: {0: 397, 1: 379}  |  val preds: {1: 110, 0: 14}
+  ✗ No improvement (1/5)
+Epoch  10/20  tr_loss=0.6664  tr_f1=0.6107  va_loss=0.7095  va_f1=0.4673  va_acc=0.6048  lr_enc=1.10e-06  lr_cls=1.01e-05  time=81s (0.66s/batch)
+         train preds: {1: 430, 0: 346}  |  val preds: {1: 112, 0: 12}
+  ✗ No improvement (2/5)
+Epoch  11/20  tr_loss=0.6502  tr_f1=0.6593  va_loss=0.7115  va_f1=0.4787  va_acc=0.6048  lr_enc=9.59e-07  lr_cls=8.55e-06  time=81s (0.66s/batch)
+         train preds: {0: 326, 1: 450}  |  val preds: {1: 110, 0: 14}
+  ✗ No improvement (3/5)
+Epoch  12/20  tr_loss=0.6423  tr_f1=0.6569  va_loss=0.7157  va_f1=0.4787  va_acc=0.6048  lr_enc=8.22e-07  lr_cls=7.04e-06  time=81s (0.66s/batch)
+         train preds: {1: 413, 0: 363}  |  val preds: {1: 110, 0: 14}
+  ✗ No improvement (4/5)
+Epoch  13/20  tr_loss=0.6346  tr_f1=0.6437  va_loss=0.7314  va_f1=0.4624  va_acc=0.5968  lr_enc=6.91e-07  lr_cls=5.61e-06  time=81s (0.66s/batch)
+         train preds: {1: 441, 0: 335}  |  val preds: {1: 111, 0: 13}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 13
+
+======================================================================
+Training done in 17.7 min. Best val F1 = 0.4787
+======================================================================
+Training curves saved → /home3/iasarantsev/audio/weights/wav2vec2_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — wav2vec2 (facebook/wav2vec2-base)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {1: 478, 0: 47}
+[Test] Macro-F1  : 0.4963
+[Test] Accuracy  : 0.6305
+
+              precision    recall  f1-score   support
+
+      No A-H     0.6383    0.1449    0.2362       207
+    With A-H     0.6297    0.9465    0.7563       318
+
+    accuracy                         0.6305       525
+   macro avg     0.6340    0.5457    0.4963       525
+weighted avg     0.6331    0.6305    0.5512       525
+
+
+======================================================================
+Training Summary — wav2vec2
+======================================================================
+  Model                    : facebook/wav2vec2-base
+  CNN extractor frozen     : True
+  Frozen transformer layers: 8/12
+  Trainable params         : 33,665,666 / 94,569,090
+  Best val F1              : 0.4787
+  Test F1                  : 0.4963
+  Test accuracy            : 0.6305
+  Training time            : 17.7 min
+  Weights saved            : /home3/iasarantsev/audio/weights/wav2vec2_bah_best.pth
+  Curves saved             : /home3/iasarantsev/audio/weights/wav2vec2_training_curves.png
+======================================================================

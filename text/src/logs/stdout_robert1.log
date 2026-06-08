@@ -1,0 +1,151 @@
+======================================================================
+Text Training Pipeline — BAH A/H Classification  [roberta]
+======================================================================
+Device        : cpu
+Model key     : roberta
+Model name    : roberta-base
+Max length    : 128 tokens
+Freeze layers : 8
+Batch size    : 16
+Epochs        : 20
+LR            : 2e-05  (encoder: 2.0000000000000003e-06)
+Weight decay  : 0.05
+Label smooth  : 0.1
+Patience      : 5
+Grad clip     : 1.0
+Seed          : 42
+Weights path  : /home3/iasarantsev/text/weights/roberta_bah_best.pth
+======================================================================
+
+[Tokenizer] Loading AutoTokenizer from roberta-base ...
+  Vocab size     : 50,265
+  Model max len  : 512
+  Padding token  : <pad>
+  Mask token     : <mask>
+  Using max_len  : 128
+
+[Augmentation] train=True  mask_prob=0.25  drop_prob=0.15
+
+[Dataset] Loading text splits ...
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+[Dataset] Loaded in 0.0s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  words: avg=58, min=1, max=234
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  words: avg=58, min=1, max=195
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  words: avg=61, min=1, max=278
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_ids', 'attention_mask']
+  input_ids        : shape=torch.Size([128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([128]), dtype=torch.int64
+  Decoded text    : My hobby is traveling. like to visit places, countries, different tourist attractions. though costs a lot money, I prefe...
+  Active tokens   : 128/128
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 48  |  Val: 8  |  Test: 33
+
+[Probe] Fetching first train batch ...
+  input_ids        : shape=torch.Size([16, 128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([16, 128]), dtype=torch.int64
+  labels       : [0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+  batch time   : 0.01s
+
+[Model] Loading AutoModelForSequenceClassification from roberta-base ...
+[Model] Backbone has 12 encoder layers
+[Model] Freezing: embeddings + first 8/12 encoder layers
+[Model] Trainable: last 4 encoder layers + classifier head
+[Model] Parameters: 28,943,618 trainable  |  95,703,552 frozen  |  124,647,170 total  (23.2% trainable)
+
+[Model] Architecture summary:
+  Hidden size    : 768
+  Num heads      : 12
+  Num layers     : 12
+  Dropout        : 0.1
+  Attn dropout   : 0.1
+  Max position   : 514
+
+[Loss] CrossEntropyLoss  label_smoothing=0.1  (class balancing handled by WeightedRandomSampler only)
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params  : 64 tensors, lr=2.00e-06
+  Classifier params: 4 tensors, lr=2.00e-05
+  Weight decay    : 0.05
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=2.00e-07
+
+======================================================================
+Starting training [roberta] ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.6669  grad_norm=1.1909  logits_sample=[-0.02695276215672493, -0.17263926565647125]  preds=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]  labels=[0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1]
+Epoch   1/20  tr_loss=0.6982  tr_f1=0.4363  va_loss=0.6987  va_f1=0.2832  va_acc=0.3952  lr_enc=1.99e-06  lr_cls=1.99e-05  time=42s (0.81s/batch)
+         train preds: {0: 647, 1: 121}  |  val preds: {0: 124}
+  ✓ New best val F1=0.2832 — saved /home3/iasarantsev/text/weights/roberta_bah_best.pth
+Epoch   2/20  tr_loss=0.6894  tr_f1=0.5676  va_loss=0.6879  va_f1=0.6094  va_acc=0.6371  lr_enc=1.96e-06  lr_cls=1.95e-05  time=30s (0.57s/batch)
+         train preds: {0: 401, 1: 367}  |  val preds: {1: 82, 0: 42}
+  ✓ New best val F1=0.6094 — saved /home3/iasarantsev/text/weights/roberta_bah_best.pth
+Epoch   3/20  tr_loss=0.6880  tr_f1=0.5441  va_loss=0.6852  va_f1=0.5571  va_acc=0.5645  lr_enc=1.90e-06  lr_cls=1.89e-05  time=32s (0.62s/batch)
+         train preds: {0: 464, 1: 304}  |  val preds: {1: 65, 0: 59}
+  ✗ No improvement (1/5)
+Epoch   4/20  tr_loss=0.6732  tr_f1=0.6335  va_loss=0.6744  va_f1=0.6193  va_acc=0.6532  lr_enc=1.83e-06  lr_cls=1.81e-05  time=28s (0.52s/batch)
+         train preds: {0: 295, 1: 473}  |  val preds: {1: 86, 0: 38}
+  ✓ New best val F1=0.6193 — saved /home3/iasarantsev/text/weights/roberta_bah_best.pth
+Epoch   5/20  tr_loss=0.6460  tr_f1=0.6809  va_loss=0.6662  va_f1=0.5788  va_acc=0.5887  lr_enc=1.74e-06  lr_cls=1.71e-05  time=26s (0.48s/batch)
+         train preds: {1: 462, 0: 306}  |  val preds: {1: 68, 0: 56}
+  ✗ No improvement (1/5)
+Epoch   6/20  tr_loss=0.6470  tr_f1=0.6341  va_loss=0.6569  va_f1=0.5908  va_acc=0.6048  lr_enc=1.63e-06  lr_cls=1.59e-05  time=29s (0.55s/batch)
+         train preds: {0: 317, 1: 451}  |  val preds: {1: 72, 0: 52}
+  ✗ No improvement (2/5)
+Epoch   7/20  tr_loss=0.6142  tr_f1=0.6805  va_loss=0.6622  va_f1=0.5880  va_acc=0.5887  lr_enc=1.51e-06  lr_cls=1.46e-05  time=29s (0.54s/batch)
+         train preds: {0: 307, 1: 461}  |  val preds: {1: 54, 0: 70}
+  ✗ No improvement (3/5)
+Epoch   8/20  tr_loss=0.6117  tr_f1=0.6813  va_loss=0.6469  va_f1=0.5826  va_acc=0.5887  lr_enc=1.38e-06  lr_cls=1.32e-05  time=26s (0.51s/batch)
+         train preds: {0: 318, 1: 450}  |  val preds: {1: 64, 0: 60}
+  ✗ No improvement (4/5)
+Epoch   9/20  tr_loss=0.6031  tr_f1=0.7005  va_loss=0.6482  va_f1=0.5941  va_acc=0.5968  lr_enc=1.24e-06  lr_cls=1.16e-05  time=38s (0.73s/batch)
+         train preds: {1: 378, 0: 390}  |  val preds: {1: 59, 0: 65}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 9
+
+======================================================================
+Training done in 4.7 min. Best val F1 = 0.6193
+======================================================================
+Training curves saved → /home3/iasarantsev/text/weights/roberta_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — roberta (roberta-base)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {0: 153, 1: 372}
+[Test] Macro-F1  : 0.6830
+[Test] Accuracy  : 0.7143
+
+              precision    recall  f1-score   support
+
+      No A-H     0.6863    0.5072    0.5833       207
+    With A-H     0.7258    0.8491    0.7826       318
+
+    accuracy                         0.7143       525
+   macro avg     0.7060    0.6782    0.6830       525
+weighted avg     0.7102    0.7143    0.7040       525
+
+
+======================================================================
+Training Summary — roberta
+======================================================================
+  Model           : roberta-base
+  Frozen layers   : 8/12
+  Trainable params: 28,943,618 / 124,647,170
+  Best val F1     : 0.6193
+  Test F1         : 0.6830
+  Test accuracy   : 0.7143
+  Training time   : 4.7 min
+  Weights saved   : /home3/iasarantsev/text/weights/roberta_bah_best.pth
+  Curves saved    : /home3/iasarantsev/text/weights/roberta_training_curves.png
+======================================================================

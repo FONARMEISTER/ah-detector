@@ -1,0 +1,121 @@
+======================================================================
+Multimodal Fusion-Head Training — cache-driven
+======================================================================
+Device              : cpu
+Cache dir           : /home3/iasarantsev/multimodal/cache
+Active modalities   : ['text', 'audio', 'video']
+Fusion input dim    : 768 + 256 + 768 = 1792
+MLP hidden dims     : [128]
+Dropout             : 0.5
+Label smoothing     : 0.1
+Mixup alpha         : 0.4
+Batch size          : 16
+Epochs              : 50
+LR                  : 0.0001
+Weight decay        : 0.05
+Patience            : 5
+Grad clip           : 1.0
+Seed                : 42
+Fusion weights path : /home3/iasarantsev/multimodal/weights/fusion_bah_best.pth
+======================================================================
+
+[Cache] Loading multi-view embedding cache ...
+[CachedFusionDataset] N=778  K_t=3  K_a=3  K_v=3  random_view=True
+[CachedFusionDataset] N=124  K_t=1  K_a=1  K_v=1  random_view=False
+[CachedFusionDataset] N=525  K_t=1  K_a=1  K_v=1  random_view=False
+  [train]    778 videos  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  K_t=3 K_a=3 K_v=3
+  [val  ]    124 videos  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  K_t=1 K_a=1 K_v=1
+  [test ]    525 videos  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  K_t=1 K_a=1 K_v=1
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+
+[DataLoader] Train: 778 videos  |  Val: 124  |  Test: 525
+
+[Probe] First train batch modality shapes : [torch.Size([16, 768]), torch.Size([16, 256]), torch.Size([16, 768])]
+[Probe] Labels : [0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1]
+
+[Model] Building simple MLP fusion head ...
+[Model] Architecture:
+SimpleMLPFusionHead(
+  (layer_norms): ModuleList(
+    (0): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+    (1): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+  )
+  (mlp): Sequential(
+    (0): Linear(in_features=1792, out_features=128, bias=True)
+    (1): GELU(approximate='none')
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=128, out_features=2, bias=True)
+  )
+)
+[Model] Parameters: 233,346 trainable  |  233,346 total
+
+[Optimizer] AdamW  lr=0.0001  weight_decay=0.05
+[Scheduler] CosineAnnealingLR  T_max=50  eta_min=1.00e-06
+[Loss]      CE label_smoothing=0.1  mixup_alpha=0.4
+
+======================================================================
+Starting fusion training ...
+======================================================================
+
+  [Epoch 1, Batch 0] train_loss=0.7282  clean_loss=0.6538  grad_norm=3.5205  clean_logits[0]=[-0.014293480664491653, -0.6465451717376709]  clean_preds=[0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1]  labels=[0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1]
+Epoch   1/50  tr_loss=0.5062  tr_f1=0.8270  va_loss=0.7544  va_f1=0.5874  va_acc=0.5887  lr=9.99e-05  time=62s
+         train preds: {0: 419, 1: 359}  |  val preds: {0: 68, 1: 56}
+  ✓ New best val F1=0.5874 — saved /home3/iasarantsev/multimodal/weights/fusion_bah_best.pth
+Epoch   2/50  tr_loss=0.3773  tr_f1=0.8406  va_loss=0.8641  va_f1=0.5426  va_acc=0.5484  lr=9.96e-05  time=62s
+         train preds: {1: 405, 0: 373}  |  val preds: {0: 61, 1: 63}
+  ✗ No improvement (1/5)
+Epoch   3/50  tr_loss=0.2802  tr_f1=0.9095  va_loss=1.0278  va_f1=0.5396  va_acc=0.5403  lr=9.91e-05  time=61s
+         train preds: {1: 432, 0: 346}  |  val preds: {0: 70, 1: 54}
+  ✗ No improvement (2/5)
+Epoch   4/50  tr_loss=0.2593  tr_f1=0.9249  va_loss=1.0601  va_f1=0.5079  va_acc=0.5161  lr=9.84e-05  time=64s
+         train preds: {1: 431, 0: 347}  |  val preds: {0: 59, 1: 65}
+  ✗ No improvement (3/5)
+Epoch   5/50  tr_loss=0.2506  tr_f1=0.9247  va_loss=1.0645  va_f1=0.5101  va_acc=0.5242  lr=9.76e-05  time=62s
+         train preds: {0: 422, 1: 356}  |  val preds: {1: 70, 0: 54}
+  ✗ No improvement (4/5)
+Epoch   6/50  tr_loss=0.2377  tr_f1=0.9215  va_loss=1.1701  va_f1=0.5222  va_acc=0.5323  lr=9.65e-05  time=66s
+         train preds: {1: 382, 0: 396}  |  val preds: {1: 67, 0: 57}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 6
+
+======================================================================
+Training done in 6.3 min. Best val F1 = 0.5874
+======================================================================
+Training curves saved → /home3/iasarantsev/multimodal/weights/fusion_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — Multimodal Fusion (text + audio + video)
+======================================================================
+[Test] Label distribution : {1: 318, 0: 207}
+[Test] Prediction dist.   : {0: 254, 1: 271}
+[Test] Macro-F1  : 0.6230
+[Test] Accuracy  : 0.6286
+
+              precision    recall  f1-score   support
+
+      No A-H     0.5236    0.6425    0.5770       207
+    With A-H     0.7269    0.6195    0.6689       318
+
+    accuracy                         0.6286       525
+   macro avg     0.6253    0.6310    0.6230       525
+weighted avg     0.6468    0.6286    0.6327       525
+
+
+======================================================================
+Multimodal Fusion Training Summary
+======================================================================
+  Active modalities      : ['text', 'audio', 'video']
+  Fusion input dim       : 768 + 256 + 768 = 1792
+  MLP hidden dims        : [128]
+  Trainable params       : 233,346
+  Best val F1            : 0.5874
+  Test F1                : 0.6230
+  Test accuracy          : 0.6286
+  Training time          : 6.3 min
+  Weights saved          : /home3/iasarantsev/multimodal/weights/fusion_bah_best.pth
+  Curves saved           : /home3/iasarantsev/multimodal/weights/fusion_training_curves.png
+======================================================================

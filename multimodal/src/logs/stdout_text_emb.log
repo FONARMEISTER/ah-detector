@@ -1,0 +1,63 @@
+[Orchestrator] Running modalities: ['text']
+
+==============================================================================
+[Orchestrator] Modality: TEXT
+==============================================================================
+
+======================================================================
+Text Embedding Extraction — BAH A/H Multimodal
+======================================================================
+Device          : cpu
+Cache dir       : /home3/iasarantsev/multimodal/cache
+K train         : 3
+K eval          : 1
+Augment train   : True
+Splits          : ['train', 'val', 'test']
+Force re-extract: False
+Batch size      : 8
+Seed            : 42
+Model           : distilbert-base-uncased
+Weights         : /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+======================================================================
+
+[Backbone] Loading text encoder ...
+[TextEmbedder] Loaded 100/104 keys from /home3/iasarantsev/text/weights/distilbert_bah_best.pth  (skipped head: ['pre_classifier.weight', 'pre_classifier.bias', 'classifier.weight', 'classifier.bias']  missing=[]  unexpected=[])
+
+======================================================================
+[train] Text → /home3/iasarantsev/multimodal/cache/text_embs_train.pt
+======================================================================
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+  [Split train] 778 text samples  |  K=3  |  augment=True
+  [Split train] Text view 1/3  [clean]
+  [Split train] Text view 2/3  [aug]
+  [Split train] Text view 3/3  [aug]
+[train] Done in 8.1 min  embeddings=(778, 3, 768)
+[train] Saved → /home3/iasarantsev/multimodal/cache/text_embs_train.pt
+
+======================================================================
+[val  ] Text → /home3/iasarantsev/multimodal/cache/text_embs_val.pt
+======================================================================
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+  [Split val] 124 text samples  |  K=1  |  augment=False
+  [Split val] Text view 1/1  [clean]
+[val  ] Done in 0.6 min  embeddings=(124, 1, 768)
+[val  ] Saved → /home3/iasarantsev/multimodal/cache/text_embs_val.pt
+
+======================================================================
+[test ] Text → /home3/iasarantsev/multimodal/cache/text_embs_test.pt
+======================================================================
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+  [Split test] 525 text samples  |  K=1  |  augment=False
+  [Split test] Text view 1/1  [clean]
+[test ] Done in 2.2 min  embeddings=(525, 1, 768)
+[test ] Saved → /home3/iasarantsev/multimodal/cache/text_embs_test.pt
+
+All requested text splits processed.
+
+[Orchestrator] All requested modalities done in 11.5 min

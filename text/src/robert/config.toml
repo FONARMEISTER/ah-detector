@@ -1,0 +1,72 @@
+# ============================================================
+# BAH Dataset — Text Classification Training Configuration
+# ============================================================
+
+[data]
+num_classes = 2
+class_names = ["No A-H", "With A-H"]
+
+[text]
+max_length = 128          # max token sequence length (transcripts are short)
+
+[training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5      # standard fine-tuning LR for transformers
+weight_decay  = 1e-2
+num_workers   = 0         # macOS/MPS: keep at 0 to avoid kernel crashes
+seed          = 42
+# Scheduler: cosine annealing
+scheduler     = "cosine"  # "cosine" | "step" | "none"
+# Early stopping patience (epochs without val-f1 improvement; 0 = disabled)
+early_stopping_patience = 5
+# Gradient clipping
+grad_clip     = 1.0
+
+[bert]
+model_name = "bert-base-uncased"
+freeze_layers = 8         # freeze embeddings + first N/12 encoder layers
+
+[bert.training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[bert.output]
+weights_dir  = "weights"
+weights_name = "bert_bah_best.pth"
+
+[roberta]
+model_name = "roberta-base"
+freeze_layers = 8         # freeze embeddings + first N/12 encoder layers
+
+[roberta.training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[roberta.output]
+weights_dir  = "weights"
+weights_name = "roberta_bah_best.pth"
+
+[distilbert]
+model_name = "distilbert-base-uncased"
+freeze_layers = 4         # freeze embeddings + first N/6 encoder layers
+
+[distilbert.training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[distilbert.output]
+weights_dir  = "weights"
+weights_name = "distilbert_bah_best.pth"
+
+[output]
+weights_dir  = "weights"

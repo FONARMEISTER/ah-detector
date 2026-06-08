@@ -1,0 +1,271 @@
+/home3/iasarantsev
+Looking in indexes: https://pypi.org/simple, https://download.pytorch.org/whl/cu124
+Requirement already satisfied: torch==2.6.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 4)) (2.6.0+cu124)
+Requirement already satisfied: torchvision==0.21.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 5)) (0.21.0+cu124)
+Requirement already satisfied: pytorch-lightning==2.6.1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 6)) (2.6.1)
+Requirement already satisfied: transformers==4.52.4 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 9)) (4.52.4)
+Requirement already satisfied: huggingface-hub==0.34.4 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 10)) (0.34.4)
+Requirement already satisfied: tokenizers==0.21.2 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 11)) (0.21.2)
+Requirement already satisfied: safetensors==0.6.2 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 12)) (0.6.2)
+Requirement already satisfied: sentencepiece==0.2.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 13)) (0.2.0)
+Requirement already satisfied: numpy==1.26.4 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 16)) (1.26.4)
+Requirement already satisfied: scipy==1.16.1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 17)) (1.16.1)
+Requirement already satisfied: scikit-learn==1.6.1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 18)) (1.6.1)
+Requirement already satisfied: pandas==2.3.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 19)) (2.3.0)
+Requirement already satisfied: seaborn==0.13.2 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 20)) (0.13.2)
+Requirement already satisfied: opencv-python==4.11.0.86 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 23)) (4.11.0.86)
+Requirement already satisfied: opencv-contrib-python==4.11.0.86 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 24)) (4.11.0.86)
+Requirement already satisfied: tqdm==4.67.1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 27)) (4.67.1)
+Requirement already satisfied: colorlog==6.9.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 28)) (6.9.0)
+Requirement already satisfied: python-json-logger==3.3.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 29)) (3.3.0)
+Requirement already satisfied: requests==2.32.3 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 32)) (2.32.3)
+Requirement already satisfied: PyYAML==6.0.2 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 35)) (6.0.2)
+Requirement already satisfied: toml==0.10.2 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 36)) (0.10.2)
+Requirement already satisfied: python-dotenv==1.0.1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 37)) (1.0.1)
+Requirement already satisfied: ultralytics==8.3.177 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 40)) (8.3.177)
+Requirement already satisfied: ultralytics-thop==2.0.15 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 41)) (2.0.15)
+Requirement already satisfied: optuna==4.7.0 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 44)) (4.7.0)
+Requirement already satisfied: librosa==0.10.2.post1 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 47)) (0.10.2.post1)
+Requirement already satisfied: catboost==1.2.8 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 50)) (1.2.8)
+Requirement already satisfied: vit-pytorch==1.19.4 in /home3/iasarantsev/lib/python3.12/site-packages (from -r /home3/iasarantsev/requirements.txt (line 53)) (1.19.4)
+Requirement already satisfied: filelock in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (3.25.2)
+Requirement already satisfied: typing-extensions>=4.10.0 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (4.15.0)
+Requirement already satisfied: networkx in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (3.6.1)
+Requirement already satisfied: jinja2 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (3.1.6)
+Requirement already satisfied: fsspec in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (2026.3.0)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.4.127 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.127)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.4.127 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.127)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.4.127 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.127)
+Requirement already satisfied: nvidia-cudnn-cu12==9.1.0.70 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (9.1.0.70)
+Requirement already satisfied: nvidia-cublas-cu12==12.4.5.8 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.5.8)
+Requirement already satisfied: nvidia-cufft-cu12==11.2.1.3 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (11.2.1.3)
+Requirement already satisfied: nvidia-curand-cu12==10.3.5.147 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (10.3.5.147)
+Requirement already satisfied: nvidia-cusolver-cu12==11.6.1.9 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (11.6.1.9)
+Requirement already satisfied: nvidia-cusparse-cu12==12.3.1.170 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.3.1.170)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.6.2 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (0.6.2)
+Requirement already satisfied: nvidia-nccl-cu12==2.21.5 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (2.21.5)
+Requirement already satisfied: nvidia-nvtx-cu12==12.4.127 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.127)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.4.127 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (12.4.127)
+Requirement already satisfied: triton==3.2.0 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (3.2.0)
+Requirement already satisfied: setuptools in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (82.0.1)
+Requirement already satisfied: sympy==1.13.1 in /home3/iasarantsev/lib/python3.12/site-packages (from torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (1.13.1)
+Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /home3/iasarantsev/lib/python3.12/site-packages (from torchvision==0.21.0->-r /home3/iasarantsev/requirements.txt (line 5)) (12.2.0)
+Requirement already satisfied: torchmetrics>0.7.0 in /home3/iasarantsev/lib/python3.12/site-packages (from pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (1.9.0)
+Requirement already satisfied: packaging>=23.0 in /home3/iasarantsev/lib/python3.12/site-packages (from pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (26.0)
+Requirement already satisfied: lightning-utilities>=0.10.0 in /home3/iasarantsev/lib/python3.12/site-packages (from pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (0.15.3)
+Requirement already satisfied: regex!=2019.12.17 in /home3/iasarantsev/lib/python3.12/site-packages (from transformers==4.52.4->-r /home3/iasarantsev/requirements.txt (line 9)) (2026.4.4)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in /home3/iasarantsev/lib/python3.12/site-packages (from huggingface-hub==0.34.4->-r /home3/iasarantsev/requirements.txt (line 10)) (1.4.3)
+Requirement already satisfied: joblib>=1.2.0 in /home3/iasarantsev/lib/python3.12/site-packages (from scikit-learn==1.6.1->-r /home3/iasarantsev/requirements.txt (line 18)) (1.5.3)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /home3/iasarantsev/lib/python3.12/site-packages (from scikit-learn==1.6.1->-r /home3/iasarantsev/requirements.txt (line 18)) (3.6.0)
+Requirement already satisfied: python-dateutil>=2.8.2 in /home3/iasarantsev/lib/python3.12/site-packages (from pandas==2.3.0->-r /home3/iasarantsev/requirements.txt (line 19)) (2.9.0.post0)
+Requirement already satisfied: pytz>=2020.1 in /home3/iasarantsev/lib/python3.12/site-packages (from pandas==2.3.0->-r /home3/iasarantsev/requirements.txt (line 19)) (2026.1.post1)
+Requirement already satisfied: tzdata>=2022.7 in /home3/iasarantsev/lib/python3.12/site-packages (from pandas==2.3.0->-r /home3/iasarantsev/requirements.txt (line 19)) (2026.1)
+Requirement already satisfied: matplotlib!=3.6.1,>=3.4 in /home3/iasarantsev/lib/python3.12/site-packages (from seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (3.10.8)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home3/iasarantsev/lib/python3.12/site-packages (from requests==2.32.3->-r /home3/iasarantsev/requirements.txt (line 32)) (3.4.7)
+Requirement already satisfied: idna<4,>=2.5 in /home3/iasarantsev/lib/python3.12/site-packages (from requests==2.32.3->-r /home3/iasarantsev/requirements.txt (line 32)) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home3/iasarantsev/lib/python3.12/site-packages (from requests==2.32.3->-r /home3/iasarantsev/requirements.txt (line 32)) (2.6.3)
+Requirement already satisfied: certifi>=2017.4.17 in /home3/iasarantsev/lib/python3.12/site-packages (from requests==2.32.3->-r /home3/iasarantsev/requirements.txt (line 32)) (2026.2.25)
+Requirement already satisfied: psutil in /home3/iasarantsev/lib/python3.12/site-packages (from ultralytics==8.3.177->-r /home3/iasarantsev/requirements.txt (line 40)) (7.2.2)
+Requirement already satisfied: py-cpuinfo in /home3/iasarantsev/lib/python3.12/site-packages (from ultralytics==8.3.177->-r /home3/iasarantsev/requirements.txt (line 40)) (9.0.0)
+Requirement already satisfied: alembic>=1.5.0 in /home3/iasarantsev/lib/python3.12/site-packages (from optuna==4.7.0->-r /home3/iasarantsev/requirements.txt (line 44)) (1.18.4)
+Requirement already satisfied: sqlalchemy>=1.4.2 in /home3/iasarantsev/lib/python3.12/site-packages (from optuna==4.7.0->-r /home3/iasarantsev/requirements.txt (line 44)) (2.0.49)
+Requirement already satisfied: audioread>=2.1.9 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (3.1.0)
+Requirement already satisfied: decorator>=4.3.0 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (5.2.1)
+Requirement already satisfied: numba>=0.51.0 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (0.65.0)
+Requirement already satisfied: soundfile>=0.12.1 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (0.13.1)
+Requirement already satisfied: pooch>=1.1 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (1.9.0)
+Requirement already satisfied: soxr>=0.3.2 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (1.0.0)
+Requirement already satisfied: lazy-loader>=0.1 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (0.5)
+Requirement already satisfied: msgpack>=1.0 in /home3/iasarantsev/lib/python3.12/site-packages (from librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (1.1.2)
+Requirement already satisfied: graphviz in /home3/iasarantsev/lib/python3.12/site-packages (from catboost==1.2.8->-r /home3/iasarantsev/requirements.txt (line 50)) (0.21)
+Requirement already satisfied: plotly in /home3/iasarantsev/lib/python3.12/site-packages (from catboost==1.2.8->-r /home3/iasarantsev/requirements.txt (line 50)) (6.7.0)
+Requirement already satisfied: six in /home3/iasarantsev/lib/python3.12/site-packages (from catboost==1.2.8->-r /home3/iasarantsev/requirements.txt (line 50)) (1.17.0)
+Requirement already satisfied: einops>=0.8.2 in /home3/iasarantsev/lib/python3.12/site-packages (from vit-pytorch==1.19.4->-r /home3/iasarantsev/requirements.txt (line 53)) (0.8.2)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /home3/iasarantsev/lib/python3.12/site-packages (from sympy==1.13.1->torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (1.3.0)
+Requirement already satisfied: Mako in /home3/iasarantsev/lib/python3.12/site-packages (from alembic>=1.5.0->optuna==4.7.0->-r /home3/iasarantsev/requirements.txt (line 44)) (1.3.10)
+Requirement already satisfied: aiohttp!=4.0.0a0,!=4.0.0a1 in /home3/iasarantsev/lib/python3.12/site-packages (from fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (3.13.5)
+Requirement already satisfied: contourpy>=1.0.1 in /home3/iasarantsev/lib/python3.12/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (1.3.3)
+Requirement already satisfied: cycler>=0.10 in /home3/iasarantsev/lib/python3.12/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (0.12.1)
+Requirement already satisfied: fonttools>=4.22.0 in /home3/iasarantsev/lib/python3.12/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (4.62.1)
+Requirement already satisfied: kiwisolver>=1.3.1 in /home3/iasarantsev/lib/python3.12/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (1.5.0)
+Requirement already satisfied: pyparsing>=3 in /home3/iasarantsev/lib/python3.12/site-packages (from matplotlib!=3.6.1,>=3.4->seaborn==0.13.2->-r /home3/iasarantsev/requirements.txt (line 20)) (3.3.2)
+Requirement already satisfied: llvmlite<0.48,>=0.47.0dev0 in /home3/iasarantsev/lib/python3.12/site-packages (from numba>=0.51.0->librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (0.47.0)
+Requirement already satisfied: platformdirs>=2.5.0 in /home3/iasarantsev/lib/python3.12/site-packages (from pooch>=1.1->librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (4.9.6)
+Requirement already satisfied: cffi>=1.0 in /home3/iasarantsev/lib/python3.12/site-packages (from soundfile>=0.12.1->librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (2.0.0)
+Requirement already satisfied: greenlet>=1 in /home3/iasarantsev/lib/python3.12/site-packages (from sqlalchemy>=1.4.2->optuna==4.7.0->-r /home3/iasarantsev/requirements.txt (line 44)) (3.4.0)
+Requirement already satisfied: MarkupSafe>=2.0 in /home3/iasarantsev/lib/python3.12/site-packages (from jinja2->torch==2.6.0->-r /home3/iasarantsev/requirements.txt (line 4)) (3.0.3)
+Requirement already satisfied: narwhals>=1.15.1 in /home3/iasarantsev/lib/python3.12/site-packages (from plotly->catboost==1.2.8->-r /home3/iasarantsev/requirements.txt (line 50)) (2.19.0)
+Requirement already satisfied: aiohappyeyeballs>=2.5.0 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (2.6.1)
+Requirement already satisfied: aiosignal>=1.4.0 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (1.4.0)
+Requirement already satisfied: attrs>=17.3.0 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (26.1.0)
+Requirement already satisfied: frozenlist>=1.1.1 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (1.8.0)
+Requirement already satisfied: multidict<7.0,>=4.5 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (6.7.1)
+Requirement already satisfied: propcache>=0.2.0 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (0.4.1)
+Requirement already satisfied: yarl<2.0,>=1.17.0 in /home3/iasarantsev/lib/python3.12/site-packages (from aiohttp!=4.0.0a0,!=4.0.0a1->fsspec[http]>=2022.5.0->pytorch-lightning==2.6.1->-r /home3/iasarantsev/requirements.txt (line 6)) (1.23.0)
+Requirement already satisfied: pycparser in /home3/iasarantsev/lib/python3.12/site-packages (from cffi>=1.0->soundfile>=0.12.1->librosa==0.10.2.post1->-r /home3/iasarantsev/requirements.txt (line 47)) (3.0)
+======================================================================
+Wav2Vec2-Emotional Training Pipeline — BAH A/H Audio Classification
+======================================================================
+Device                   : cuda
+Model                    : ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+Sample rate              : 16000 Hz
+Max audio length         : 30.0s (480,000 samples)
+Freeze CNN extractor     : True
+Freeze transformer layers: 20 (of 24 in xlsr-large)
+Batch size               : 4
+Epochs                   : 20
+LR                       : 1e-05  (encoder: 1.0000000000000002e-06)
+Weight decay             : 0.01
+Patience                 : 5
+Grad clip                : 1.0
+Seed                     : 42
+Weights path             : /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+======================================================================
+
+[FeatureExtractor] Loading Wav2Vec2FeatureExtractor from ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition ...
+  Sampling rate        : 16000 Hz
+  do_normalize         : True
+  return_attention_mask: True
+
+[Augmentation] train=False  gain=0.2  snr_db=25.0  shift=0.5s  masks=2×0.05
+
+[Dataset] Loading audio splits ...
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+[Dataset] Loaded in 4.7s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_values', 'attention_mask']
+  input_values         : shape=torch.Size([480000]), dtype=torch.float32, min=-10.091, max=9.506
+  attention_mask       : shape=torch.Size([480000]), dtype=torch.int32, min=1.000, max=1.000
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+[Loss]   Normalised weights → [0.4949, 0.5051]
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 194  |  Val: 31  |  Test: 132
+
+[Probe] Fetching first train batch ...
+  input_values         : shape=torch.Size([4, 480000]), dtype=torch.float32
+  attention_mask       : shape=torch.Size([4, 480000]), dtype=torch.int32
+  labels              : [0, 0, 0, 1]
+  batch time          : 0.22s
+
+[Model] Loading Wav2Vec2ForSequenceClassification from ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition ...
+[Model] Replacing original emotion head (7 classes) → A/H head (2 classes)
+[Model] CNN feature extractor frozen
+[Model] XLS-R transformer has 24 layers
+[Model] Freezing: first 20/24 transformer layers
+[Model] Trainable: last 4 transformer layers + projector + classifier head
+[Model] Parameters: 59,566,978 trainable  |  256,134,656 frozen  |  315,701,634 total  (18.9% trainable)
+
+[Model] Architecture summary:
+  Hidden size      : 1024
+  Num attn heads   : 16
+  Num hidden layers: 24
+  Intermediate size: 4096
+  Hidden dropout   : 0.05
+  Attn dropout     : 0.1
+  Feat proj dropout: 0.05
+  Classifier proj  : 256
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params   : 74 tensors, lr=1.00e-06
+  Classifier params: 4 tensors, lr=1.00e-05
+  Weight decay     : 0.01
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=1.00e-07
+
+======================================================================
+Starting training ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.6896  grad_norm=1.2730  logits_sample=[0.07132014632225037, 0.03806149214506149]  preds=[0, 1, 1, 1]  labels=[0, 0, 1, 0]
+Epoch   1/20  tr_loss=0.6925  tr_f1=0.5036  va_loss=0.7024  va_f1=0.3820  va_acc=0.4113  lr_enc=9.94e-07  lr_cls=9.94e-06  time=246s (0.99s/batch)
+         train preds: {0: 313, 1: 463}  |  val preds: {1: 22, 0: 102}
+  ✓ New best val F1=0.3820 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   2/20  tr_loss=0.6803  tr_f1=0.6146  va_loss=0.6937  va_f1=0.4327  va_acc=0.5484  lr_enc=9.78e-07  lr_cls=9.76e-06  time=235s (0.99s/batch)
+         train preds: {0: 379, 1: 397}  |  val preds: {1: 105, 0: 19}
+  ✓ New best val F1=0.4327 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   3/20  tr_loss=0.6782  tr_f1=0.5582  va_loss=0.7176  va_f1=0.4510  va_acc=0.4516  lr_enc=9.51e-07  lr_cls=9.46e-06  time=218s (0.99s/batch)
+         train preds: {1: 502, 0: 274}  |  val preds: {1: 53, 0: 71}
+  ✓ New best val F1=0.4510 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   4/20  tr_loss=0.6702  tr_f1=0.5718  va_loss=0.6995  va_f1=0.4277  va_acc=0.5403  lr_enc=9.14e-07  lr_cls=9.05e-06  time=218s (0.99s/batch)
+         train preds: {1: 534, 0: 242}  |  val preds: {1: 104, 0: 20}
+  ✗ No improvement (1/5)
+Epoch   5/20  tr_loss=0.6615  tr_f1=0.5832  va_loss=0.7190  va_f1=0.4202  va_acc=0.5000  lr_enc=8.68e-07  lr_cls=8.55e-06  time=218s (0.99s/batch)
+         train preds: {1: 562, 0: 214}  |  val preds: {1: 95, 0: 29}
+  ✗ No improvement (2/5)
+Epoch   6/20  tr_loss=0.6542  tr_f1=0.6147  va_loss=0.7606  va_f1=0.4700  va_acc=0.4758  lr_enc=8.15e-07  lr_cls=7.96e-06  time=222s (0.99s/batch)
+         train preds: {1: 511, 0: 265}  |  val preds: {1: 62, 0: 62}
+  ✓ New best val F1=0.4700 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   7/20  tr_loss=0.6707  tr_f1=0.5932  va_loss=0.7583  va_f1=0.4632  va_acc=0.4758  lr_enc=7.54e-07  lr_cls=7.30e-06  time=236s (0.99s/batch)
+         train preds: {0: 348, 1: 428}  |  val preds: {1: 68, 0: 56}
+  ✗ No improvement (1/5)
+Epoch   8/20  tr_loss=0.6623  tr_f1=0.5952  va_loss=0.7574  va_f1=0.4901  va_acc=0.5161  lr_enc=6.89e-07  lr_cls=6.58e-06  time=237s (0.99s/batch)
+         train preds: {1: 411, 0: 365}  |  val preds: {1: 77, 0: 47}
+  ✓ New best val F1=0.4901 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   9/20  tr_loss=0.6476  tr_f1=0.6239  va_loss=0.7685  va_f1=0.4939  va_acc=0.5161  lr_enc=6.20e-07  lr_cls=5.82e-06  time=236s (0.98s/batch)
+         train preds: {1: 455, 0: 321}  |  val preds: {1: 75, 0: 49}
+  ✓ New best val F1=0.4939 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch  10/20  tr_loss=0.6348  tr_f1=0.6350  va_loss=0.7797  va_f1=0.4731  va_acc=0.5000  lr_enc=5.50e-07  lr_cls=5.05e-06  time=236s (0.99s/batch)
+         train preds: {0: 336, 1: 440}  |  val preds: {1: 77, 0: 47}
+  ✗ No improvement (1/5)
+Epoch  11/20  tr_loss=0.6543  tr_f1=0.5941  va_loss=0.7948  va_f1=0.4632  va_acc=0.4758  lr_enc=4.80e-07  lr_cls=4.28e-06  time=235s (0.98s/batch)
+         train preds: {1: 459, 0: 317}  |  val preds: {1: 68, 0: 56}
+  ✗ No improvement (2/5)
+Epoch  12/20  tr_loss=0.6602  tr_f1=0.5889  va_loss=0.7976  va_f1=0.4658  va_acc=0.4758  lr_enc=4.11e-07  lr_cls=3.52e-06  time=237s (0.99s/batch)
+         train preds: {0: 376, 1: 400}  |  val preds: {1: 66, 0: 58}
+  ✗ No improvement (3/5)
+Epoch  13/20  tr_loss=0.6670  tr_f1=0.5989  va_loss=0.7909  va_f1=0.4658  va_acc=0.4758  lr_enc=3.46e-07  lr_cls=2.80e-06  time=235s (0.98s/batch)
+         train preds: {0: 368, 1: 408}  |  val preds: {1: 66, 0: 58}
+  ✗ No improvement (4/5)
+Epoch  14/20  tr_loss=0.6488  tr_f1=0.6181  va_loss=0.7887  va_f1=0.4769  va_acc=0.4919  lr_enc=2.85e-07  lr_cls=2.14e-06  time=240s (0.99s/batch)
+         train preds: {0: 359, 1: 417}  |  val preds: {1: 70, 0: 54}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 14
+
+======================================================================
+Training done in 54.5 min. Best val F1 = 0.4939
+======================================================================
+Training curves saved → /home3/iasarantsev/audio/weights/wav2vec2emotional_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — Wav2Vec2-Emotional (ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {0: 252, 1: 273}
+[Test] Macro-F1  : 0.5723
+[Test] Accuracy  : 0.5790
+
+              precision    recall  f1-score   support
+
+      No A-H     0.4722    0.5749    0.5185       207
+    With A-H     0.6777    0.5818    0.6261       318
+
+    accuracy                         0.5790       525
+   macro avg     0.5749    0.5783    0.5723       525
+weighted avg     0.5967    0.5790    0.5837       525
+
+
+======================================================================
+Wav2Vec2-Emotional Training Summary
+======================================================================
+  Model                    : ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+  CNN extractor frozen     : True
+  Frozen transformer layers: 20/24
+  Trainable params         : 59,566,978 / 315,701,634
+  Best val F1              : 0.4939
+  Test F1                  : 0.5723
+  Test accuracy            : 0.5790
+  Training time            : 54.5 min
+  Weights saved            : /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+  Curves saved             : /home3/iasarantsev/audio/weights/wav2vec2emotional_training_curves.png
+======================================================================

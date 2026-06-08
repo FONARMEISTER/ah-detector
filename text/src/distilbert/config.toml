@@ -1,0 +1,52 @@
+# ============================================================
+# BAH Dataset — Text Classification Training Configuration
+# ============================================================
+
+[data]
+num_classes = 2
+class_names = ["No A-H", "With A-H"]
+
+[text]
+max_length = 128          # max token sequence length (transcripts are short)
+
+# ── Train-time text augmentation (applied per __getitem__ on train split only)
+# Set ``augment_train = false`` to disable.  ``[MASK]`` token defaults to the
+# tokenizer's own mask token when available; override here only if needed.
+[augmentation]
+augment_train       = true
+text_mask_prob      = 0.25   # P(replace word with [MASK])
+text_drop_prob      = 0.15   # P(drop word entirely)
+# text_mask_token   = "[MASK]"  # auto-resolved from tokenizer if commented out
+
+[training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5      # standard fine-tuning LR for transformers
+weight_decay  = 1e-2
+num_workers   = 0         # macOS/MPS: keep at 0 to avoid kernel crashes
+seed          = 42
+# Scheduler: cosine annealing
+scheduler     = "cosine"  # "cosine" | "step" | "none"
+# Early stopping patience (epochs without val-f1 improvement; 0 = disabled)
+early_stopping_patience = 5
+# Gradient clipping
+grad_clip     = 1.0
+
+[distilbert]
+model_name = "distilbert-base-uncased"
+freeze_layers = 3         # freeze embeddings + first N/6 encoder layers
+label_smoothing = 0.1             # CE label smoothing — softer targets
+
+[distilbert.training]
+epochs        = 20
+batch_size    = 16
+learning_rate = 2e-5
+weight_decay  = 5e-2
+early_stopping_patience = 5
+
+[distilbert.output]
+weights_dir  = "weights"
+weights_name = "distilbert_bah_best.pth"
+
+[output]
+weights_dir  = "weights"

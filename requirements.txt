@@ -47,8 +47,12 @@ optuna==4.7.0
 # === Audio ===
 librosa==0.10.2.post1
 
-# === Text exporter (impl=3) ===
+# === Gradient boosting (multimodal fusion classifier choices) ===
 catboost==1.2.8
+xgboost==2.1.4
 
 # === Visual Transformers ===
 vit-pytorch==1.19.4
+
+# === Working with wav files ===
+torchaudio==2.11.0

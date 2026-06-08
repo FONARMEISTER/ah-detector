@@ -1,0 +1,32 @@
+[data]
+split_frames_dir   = "data/split-frames"
+segmented_dir      = "data/SegmentedFrames"
+# Frames root used only for statistics comparison
+frames_dir         = "data/Frames"
+num_classes        = 2
+class_names        = ["No A-H", "With A-H"]
+
+[image]
+image_size  = 224
+patch_size  = 16
+channels    = 3
+mean = [0.485, 0.456, 0.406]
+std  = [0.229, 0.224, 0.225]
+
+[swin]
+model_name   = "microsoft/swin-tiny-patch4-window7-224"
+clip_len     = 32        # number of frames per clip (same as ViViT for comparison)
+clip_stride  = 16        # sliding window stride (overlap = clip_len - stride)
+label_agg    = "any"     # "any" = clip is positive if ANY frame is 1
+freeze_stages = 3        # freeze patch_embed + first N Swin stages (0-3); fine-tune the rest
+
+[swin.training]
+epochs        = 30
+batch_size    = 4         # Swin-S processes each frame independently; keep small for clip_len=32
+learning_rate = 2e-5      # lower LR for fine-tuning
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[swin.output]
+weights_dir  = "weights"
+weights_name = "swin_bah_best.pth"

@@ -1,0 +1,40 @@
+# ============================================================
+# BAH Dataset — Audio Classification Training Configuration
+# ============================================================
+
+[data]
+num_classes = 2
+class_names = ["No A-H", "With A-H"]
+
+[audio]
+sample_rate     = 16000   # Hz — wav2vec2 native sample rate
+max_length_sec  = 30.0    # truncate/pad all clips to this duration
+
+[training]
+epochs        = 20
+batch_size    = 8         # audio tensors are large; keep small
+learning_rate = 2e-5
+weight_decay  = 1e-2
+num_workers   = 0         # macOS/MPS: keep at 0 to avoid kernel crashes
+seed          = 42
+grad_clip     = 1.0
+scheduler     = "cosine"  # "cosine" | "step" | "none"
+early_stopping_patience = 5
+
+[wav2vec2]
+model_name    = "facebook/wav2vec2-base"
+# Wav2Vec2 has 12 transformer encoder layers (indices 0–11).
+# Freeze embeddings + feature extractor + first N encoder layers.
+freeze_feature_extractor = true   # always freeze the CNN feature extractor
+freeze_layers = 9                 # freeze first 8/12 transformer layers
+
+[wav2vec2.training]
+epochs        = 20
+batch_size    = 8
+learning_rate = 2e-5
+weight_decay  = 1e-2
+early_stopping_patience = 5
+
+[wav2vec2.output]
+weights_dir  = "weights"
+weights_name = "wav2vec2_bah_best.pth"

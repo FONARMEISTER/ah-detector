@@ -1,0 +1,169 @@
+======================================================================
+Audio Training Pipeline — BAH A/H Classification  [wav2vec2emotional]
+======================================================================
+Device                   : cuda
+Model key                : wav2vec2emotional
+Model name               : ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+Sample rate              : 16000 Hz
+Max audio length         : 30.0s (480,000 samples)
+Freeze CNN extractor     : True
+Freeze transformer layers: 20
+Batch size               : 4
+Epochs                   : 20
+LR                       : 1e-05  (encoder: 1.0000000000000002e-06)
+Weight decay             : 0.05
+Label smooth             : 0.1
+Patience                 : 5
+Grad clip                : 1.0
+Seed                     : 42
+Weights path             : /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+======================================================================
+
+[FeatureExtractor] Loading Wav2Vec2FeatureExtractor from ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition ...
+  Sampling rate        : 16000 Hz
+  do_normalize         : True
+  return_attention_mask: True
+
+[Augmentation] train=False  gain=0.2  snr_db=25.0  shift=0.5s  masks=2×0.05
+
+[Dataset] Loading audio splits ...
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+[Dataset] Loaded in 3.2s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_values', 'attention_mask']
+  input_values         : shape=torch.Size([480000]), dtype=torch.float32, min=-10.091, max=9.506
+  attention_mask       : shape=torch.Size([480000]), dtype=torch.int32, min=1.000, max=1.000
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 194  |  Val: 31  |  Test: 132
+
+[Probe] Fetching first train batch ...
+  input_values         : shape=torch.Size([4, 480000]), dtype=torch.float32
+  attention_mask       : shape=torch.Size([4, 480000]), dtype=torch.int32
+  labels              : [0, 0, 0, 1]
+  batch time          : 0.18s
+
+[Model] Loading Wav2Vec2ForSequenceClassification from ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition ...
+[Model] Replacing original head → 2-class A/H head
+[Model] CNN feature extractor frozen
+[Model] Wav2Vec2 transformer has 24 layers
+[Model] Freezing: first 20/24 transformer layers
+[Model] Trainable: last 4 transformer layers + projector + classifier head
+[Model] Parameters: 59,566,978 trainable  |  256,134,656 frozen  |  315,701,634 total  (18.9% trainable)
+
+[Model] Architecture summary:
+  Hidden size      : 1024
+  Num attn heads   : 16
+  Num hidden layers: 24
+  Intermediate size: 4096
+  Hidden dropout   : 0.05
+  Attn dropout     : 0.1
+  Feat proj dropout: 0.05
+  Classifier proj  : 256
+
+[Loss] CrossEntropyLoss  label_smoothing=0.1  (class balancing handled by WeightedRandomSampler only)
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params   : 74 tensors, lr=1.00e-06
+  Classifier params: 4 tensors, lr=1.00e-05
+  Weight decay     : 0.05
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=1.00e-07
+
+======================================================================
+Starting training [wav2vec2emotional] ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.6900  grad_norm=1.1663  logits_sample=[0.07132014632225037, 0.03806149214506149]  preds=[0, 1, 1, 1]  labels=[0, 0, 1, 0]
+Epoch   1/20  tr_loss=0.6924  tr_f1=0.5193  va_loss=0.7035  va_f1=0.3770  va_acc=0.4355  lr_enc=9.94e-07  lr_cls=9.94e-06  time=237s (0.98s/batch)
+         train preds: {0: 375, 1: 401}  |  val preds: {0: 113, 1: 11}
+  ✓ New best val F1=0.3770 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   2/20  tr_loss=0.6823  tr_f1=0.6089  va_loss=0.6955  va_f1=0.4427  va_acc=0.5484  lr_enc=9.78e-07  lr_cls=9.76e-06  time=239s (0.99s/batch)
+         train preds: {0: 446, 1: 330}  |  val preds: {1: 103, 0: 21}
+  ✓ New best val F1=0.4427 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   3/20  tr_loss=0.6802  tr_f1=0.5704  va_loss=0.7169  va_f1=0.4515  va_acc=0.4516  lr_enc=9.51e-07  lr_cls=9.46e-06  time=239s (0.99s/batch)
+         train preds: {1: 466, 0: 310}  |  val preds: {1: 47, 0: 77}
+  ✓ New best val F1=0.4515 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   4/20  tr_loss=0.6745  tr_f1=0.5726  va_loss=0.7006  va_f1=0.4277  va_acc=0.5403  lr_enc=9.14e-07  lr_cls=9.05e-06  time=239s (0.99s/batch)
+         train preds: {1: 515, 0: 261}  |  val preds: {1: 104, 0: 20}
+  ✗ No improvement (1/5)
+Epoch   5/20  tr_loss=0.6670  tr_f1=0.6039  va_loss=0.7172  va_f1=0.4149  va_acc=0.4919  lr_enc=8.68e-07  lr_cls=8.55e-06  time=239s (0.99s/batch)
+         train preds: {1: 544, 0: 232}  |  val preds: {1: 94, 0: 30}
+  ✗ No improvement (2/5)
+Epoch   6/20  tr_loss=0.6604  tr_f1=0.6145  va_loss=0.7538  va_f1=0.4805  va_acc=0.4839  lr_enc=8.15e-07  lr_cls=7.96e-06  time=237s (0.98s/batch)
+         train preds: {1: 491, 0: 285}  |  val preds: {1: 59, 0: 65}
+  ✓ New best val F1=0.4805 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch   7/20  tr_loss=0.6757  tr_f1=0.6048  va_loss=0.7496  va_f1=0.4728  va_acc=0.4839  lr_enc=7.54e-07  lr_cls=7.30e-06  time=237s (0.99s/batch)
+         train preds: {0: 368, 1: 408}  |  val preds: {1: 67, 0: 57}
+  ✗ No improvement (1/5)
+Epoch   8/20  tr_loss=0.6682  tr_f1=0.5954  va_loss=0.7473  va_f1=0.4770  va_acc=0.5000  lr_enc=6.89e-07  lr_cls=6.58e-06  time=239s (0.99s/batch)
+         train preds: {1: 393, 0: 383}  |  val preds: {1: 75, 0: 49}
+  ✗ No improvement (2/5)
+Epoch   9/20  tr_loss=0.6564  tr_f1=0.6272  va_loss=0.7557  va_f1=0.4872  va_acc=0.5081  lr_enc=6.20e-07  lr_cls=5.82e-06  time=237s (0.98s/batch)
+         train preds: {1: 447, 0: 329}  |  val preds: {1: 74, 0: 50}
+  ✓ New best val F1=0.4872 — saved /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+Epoch  10/20  tr_loss=0.6462  tr_f1=0.6317  va_loss=0.7644  va_f1=0.4836  va_acc=0.5081  lr_enc=5.50e-07  lr_cls=5.05e-06  time=237s (0.99s/batch)
+         train preds: {0: 347, 1: 429}  |  val preds: {1: 76, 0: 48}
+  ✗ No improvement (1/5)
+Epoch  11/20  tr_loss=0.6618  tr_f1=0.5931  va_loss=0.7775  va_f1=0.4728  va_acc=0.4839  lr_enc=4.80e-07  lr_cls=4.28e-06  time=236s (0.98s/batch)
+         train preds: {1: 456, 0: 320}  |  val preds: {1: 67, 0: 57}
+  ✗ No improvement (2/5)
+Epoch  12/20  tr_loss=0.6661  tr_f1=0.5872  va_loss=0.7789  va_f1=0.4680  va_acc=0.4758  lr_enc=4.11e-07  lr_cls=3.52e-06  time=239s (0.99s/batch)
+         train preds: {0: 391, 1: 385}  |  val preds: {1: 64, 0: 60}
+  ✗ No improvement (3/5)
+Epoch  13/20  tr_loss=0.6718  tr_f1=0.6016  va_loss=0.7720  va_f1=0.4658  va_acc=0.4758  lr_enc=3.46e-07  lr_cls=2.80e-06  time=236s (0.98s/batch)
+         train preds: {0: 374, 1: 402}  |  val preds: {1: 66, 0: 58}
+  ✗ No improvement (4/5)
+Epoch  14/20  tr_loss=0.6571  tr_f1=0.6145  va_loss=0.7696  va_f1=0.4632  va_acc=0.4758  lr_enc=2.85e-07  lr_cls=2.14e-06  time=238s (0.99s/batch)
+         train preds: {0: 366, 1: 410}  |  val preds: {1: 68, 0: 56}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 14
+
+======================================================================
+Training done in 55.8 min. Best val F1 = 0.4872
+======================================================================
+Training curves saved → /home3/iasarantsev/audio/weights/wav2vec2emotional_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — wav2vec2emotional (ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {0: 256, 1: 269}
+[Test] Macro-F1  : 0.5654
+[Test] Accuracy  : 0.5714
+
+              precision    recall  f1-score   support
+
+      No A-H     0.4648    0.5749    0.5140       207
+    With A-H     0.6729    0.5692    0.6167       318
+
+    accuracy                         0.5714       525
+   macro avg     0.5689    0.5720    0.5654       525
+weighted avg     0.5908    0.5714    0.5762       525
+
+
+======================================================================
+Training Summary — wav2vec2emotional
+======================================================================
+  Model                    : ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+  CNN extractor frozen     : True
+  Frozen transformer layers: 20/24
+  Trainable params         : 59,566,978 / 315,701,634
+  Best val F1              : 0.4872
+  Test F1                  : 0.5654
+  Test accuracy            : 0.5714
+  Training time            : 55.8 min
+  Weights saved            : /home3/iasarantsev/audio/weights/wav2vec2emotional_bah_best.pth
+  Curves saved             : /home3/iasarantsev/audio/weights/wav2vec2emotional_training_curves.png
+======================================================================

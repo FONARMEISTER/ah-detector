@@ -1,0 +1,173 @@
+======================================================================
+DistilBERT Training Pipeline — BAH A/H Text Classification
+======================================================================
+Device        : cpu
+Model         : distilbert-base-uncased
+Max length    : 128 tokens
+Freeze layers : 3
+Batch size    : 16
+Epochs        : 20
+LR            : 2e-05  (encoder: 2.0000000000000003e-06)
+Weight decay  : 0.05
+Patience      : 5
+Grad clip     : 1.0
+Seed          : 42
+Weights path  : /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+======================================================================
+
+[Tokenizer] Loading AutoTokenizer from distilbert-base-uncased ...
+  Vocab size     : 30,522
+  Model max len  : 512
+  Padding token  : [PAD]
+  Using max_len  : 128
+
+[Augmentation] train=True  mask_prob=0.25  drop_prob=0.15
+
+[Dataset] Loading text splits ...
+TextDataset [train]: 778 samples loaded
+TextDataset [val]: 124 samples loaded
+TextDataset [test]: 525 samples loaded
+[Dataset] Loaded in 0.0s
+  [train]    778 samples  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  words: avg=58, min=1, max=234
+  [val  ]    124 samples  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  words: avg=58, min=1, max=195
+  [test ]    525 samples  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  words: avg=61, min=1, max=278
+
+[Sanity] Loading single sample from train dataset ...
+  Label           : 0
+  Encoded keys    : ['input_ids', 'attention_mask']
+  input_ids        : shape=torch.Size([128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([128]), dtype=torch.int64
+  Decoded text    : my hobby is traveling. like to visit places, countries, different tourist attractions. though costs a lot money, i prefe...
+  Active tokens   : 128/128
+
+[Sampler] Class counts — No A-H: 393  |  With A-H: 385
+[Sampler] Class weights — No A-H: 0.002545  |  With A-H: 0.002597
+[Loss]   Normalised weights → [0.4949, 0.5051]
+
+[DataLoader] Train: 778 samples  |  Val: 124  |  Test: 525
+[DataLoader] Train batches: 48  |  Val: 8  |  Test: 33
+
+[Probe] Fetching first train batch ...
+  input_ids        : shape=torch.Size([16, 128]), dtype=torch.int64
+  attention_mask   : shape=torch.Size([16, 128]), dtype=torch.int64
+  labels       : [0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+  batch time   : 0.01s
+
+[Model] Loading DistilBertForSequenceClassification from distilbert-base-uncased ...
+[Model] DistilBERT transformer has 6 layers
+[Model] Freezing: embeddings + first 3/6 transformer layers
+[Model] Trainable: last 3 transformer layers + pre_classifier + classifier head
+[Model] Parameters: 21,855,746 trainable  |  45,099,264 frozen  |  66,955,010 total  (32.6% trainable)
+
+[Model] Architecture summary:
+  Hidden size    : 768
+  Num heads      : 12
+  Num layers     : 6
+  Dropout        : 0.1
+  Attn dropout   : 0.1
+  Max position   : 512
+
+[Loss] CrossEntropyLoss  label_smoothing=0.1  (class balancing handled by WeightedRandomSampler only)
+
+[Optimizer] AdamW with differential LRs:
+  Encoder params  : 48 tensors, lr=2.00e-06
+  Classifier params: 4 tensors, lr=2.00e-05
+  Weight decay    : 0.05
+[Scheduler] CosineAnnealingLR, T_max=20, eta_min=2.00e-07
+
+======================================================================
+Starting training ...
+======================================================================
+
+  [Epoch 1, Batch 0] loss=0.7014  grad_norm=1.0062  logits_sample=[-0.10991880297660828, -0.02510443888604641]  preds=[1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1]  labels=[0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1]
+Epoch   1/20  tr_loss=0.6930  tr_f1=0.4574  va_loss=0.6833  va_f1=0.4946  va_acc=0.6129  lr_enc=1.99e-06  lr_cls=1.99e-05  time=211s (4.23s/batch)
+         train preds: {1: 161, 0: 607}  |  val preds: {1: 109, 0: 15}
+  ✓ New best val F1=0.4946 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   2/20  tr_loss=0.6849  tr_f1=0.5668  va_loss=0.6713  va_f1=0.5367  va_acc=0.6452  lr_enc=1.96e-06  lr_cls=1.95e-05  time=208s (4.15s/batch)
+         train preds: {0: 273, 1: 495}  |  val preds: {1: 109, 0: 15}
+  ✓ New best val F1=0.5367 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   3/20  tr_loss=0.6723  tr_f1=0.6063  va_loss=0.6622  va_f1=0.5891  va_acc=0.6532  lr_enc=1.90e-06  lr_cls=1.89e-05  time=206s (4.13s/batch)
+         train preds: {1: 524, 0: 244}  |  val preds: {1: 98, 0: 26}
+  ✓ New best val F1=0.5891 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   4/20  tr_loss=0.6578  tr_f1=0.6219  va_loss=0.6548  va_f1=0.6016  va_acc=0.6371  lr_enc=1.83e-06  lr_cls=1.81e-05  time=204s (4.09s/batch)
+         train preds: {1: 372, 0: 396}  |  val preds: {1: 86, 0: 38}
+  ✓ New best val F1=0.6016 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   5/20  tr_loss=0.6372  tr_f1=0.6467  va_loss=0.6492  va_f1=0.5973  va_acc=0.6371  lr_enc=1.74e-06  lr_cls=1.71e-05  time=216s (4.30s/batch)
+         train preds: {1: 445, 0: 323}  |  val preds: {1: 88, 0: 36}
+  ✗ No improvement (1/5)
+Epoch   6/20  tr_loss=0.6017  tr_f1=0.7159  va_loss=0.6560  va_f1=0.5814  va_acc=0.6129  lr_enc=1.63e-06  lr_cls=1.59e-05  time=218s (4.36s/batch)
+         train preds: {1: 410, 0: 358}  |  val preds: {1: 83, 0: 41}
+  ✗ No improvement (2/5)
+Epoch   7/20  tr_loss=0.5959  tr_f1=0.6946  va_loss=0.6799  va_f1=0.6153  va_acc=0.6210  lr_enc=1.51e-06  lr_cls=1.46e-05  time=207s (4.15s/batch)
+         train preds: {1: 433, 0: 335}  |  val preds: {1: 64, 0: 60}
+  ✓ New best val F1=0.6153 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   8/20  tr_loss=0.5984  tr_f1=0.6965  va_loss=0.6591  va_f1=0.6288  va_acc=0.6452  lr_enc=1.38e-06  lr_cls=1.32e-05  time=205s (4.09s/batch)
+         train preds: {0: 368, 1: 400}  |  val preds: {1: 75, 0: 49}
+  ✓ New best val F1=0.6288 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch   9/20  tr_loss=0.5935  tr_f1=0.6819  va_loss=0.6548  va_f1=0.6360  va_acc=0.6532  lr_enc=1.24e-06  lr_cls=1.16e-05  time=219s (4.38s/batch)
+         train preds: {1: 412, 0: 356}  |  val preds: {1: 76, 0: 48}
+  ✓ New best val F1=0.6360 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch  10/20  tr_loss=0.5796  tr_f1=0.7042  va_loss=0.6572  va_f1=0.6314  va_acc=0.6452  lr_enc=1.10e-06  lr_cls=1.01e-05  time=213s (4.27s/batch)
+         train preds: {1: 449, 0: 319}  |  val preds: {1: 73, 0: 51}
+  ✗ No improvement (1/5)
+Epoch  11/20  tr_loss=0.5842  tr_f1=0.6962  va_loss=0.6567  va_f1=0.6191  va_acc=0.6290  lr_enc=9.59e-07  lr_cls=8.55e-06  time=205s (4.10s/batch)
+         train preds: {0: 351, 1: 417}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (2/5)
+Epoch  12/20  tr_loss=0.5739  tr_f1=0.7027  va_loss=0.6476  va_f1=0.6553  va_acc=0.6694  lr_enc=8.22e-07  lr_cls=7.04e-06  time=208s (4.16s/batch)
+         train preds: {0: 360, 1: 408}  |  val preds: {1: 74, 0: 50}
+  ✓ New best val F1=0.6553 — saved /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+Epoch  13/20  tr_loss=0.5703  tr_f1=0.7127  va_loss=0.6542  va_f1=0.6264  va_acc=0.6371  lr_enc=6.91e-07  lr_cls=5.61e-06  time=205s (4.11s/batch)
+         train preds: {0: 338, 1: 430}  |  val preds: {1: 70, 0: 54}
+  ✗ No improvement (1/5)
+Epoch  14/20  tr_loss=0.5945  tr_f1=0.6976  va_loss=0.6436  va_f1=0.6161  va_acc=0.6371  lr_enc=5.71e-07  lr_cls=4.28e-06  time=205s (4.11s/batch)
+         train preds: {0: 368, 1: 400}  |  val preds: {1: 78, 0: 46}
+  ✗ No improvement (2/5)
+Epoch  15/20  tr_loss=0.5836  tr_f1=0.6992  va_loss=0.6473  va_f1=0.6191  va_acc=0.6290  lr_enc=4.64e-07  lr_cls=3.10e-06  time=205s (4.10s/batch)
+         train preds: {0: 365, 1: 403}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (3/5)
+Epoch  16/20  tr_loss=0.5796  tr_f1=0.7108  va_loss=0.6468  va_f1=0.6191  va_acc=0.6290  lr_enc=3.72e-07  lr_cls=2.09e-06  time=208s (4.16s/batch)
+         train preds: {0: 370, 1: 398}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (4/5)
+Epoch  17/20  tr_loss=0.5795  tr_f1=0.7200  va_loss=0.6470  va_f1=0.6191  va_acc=0.6290  lr_enc=2.98e-07  lr_cls=1.28e-06  time=206s (4.12s/batch)
+         train preds: {0: 374, 1: 394}  |  val preds: {1: 69, 0: 55}
+  ✗ No improvement (5/5)
+  ⛔ Early stopping at epoch 17
+
+======================================================================
+Training done in 59.3 min. Best val F1 = 0.6553
+======================================================================
+Training curves saved → /home3/iasarantsev/text/weights/distilbert_training_curves.png
+
+[Test] Loading best checkpoint and evaluating ...
+
+======================================================================
+Test Results — DistilBERT (distilbert-base-uncased)
+======================================================================
+[Test] Label distribution : {0: 207, 1: 318}
+[Test] Prediction dist.  : {0: 176, 1: 349}
+[Test] Macro-F1  : 0.6897
+[Test] Accuracy  : 0.7124
+
+              precision    recall  f1-score   support
+
+      No A-H     0.6591    0.5604    0.6057       207
+    With A-H     0.7393    0.8113    0.7736       318
+
+    accuracy                         0.7124       525
+   macro avg     0.6992    0.6859    0.6897       525
+weighted avg     0.7076    0.7124    0.7074       525
+
+
+======================================================================
+DistilBERT Training Summary
+======================================================================
+  Model           : distilbert-base-uncased
+  Frozen layers   : 3/6
+  Trainable params: 21,855,746 / 66,955,010
+  Best val F1     : 0.6553
+  Test F1         : 0.6897
+  Test accuracy   : 0.7124
+  Training time   : 59.3 min
+  Weights saved   : /home3/iasarantsev/text/weights/distilbert_bah_best.pth
+  Curves saved    : /home3/iasarantsev/text/weights/distilbert_training_curves.png
+======================================================================

@@ -1,0 +1,82 @@
+# ============================================================
+# BAH Dataset — Audio Classification Training Configuration
+# ============================================================
+# A single script (audio/src/audio_training.py) trains either backbone
+# below; pick one via the [audio].default_model field or the
+# command-line argument.
+# ============================================================
+
+[audio]
+sample_rate     = 16000             # Hz — wav2vec2 native sample rate
+max_length_sec  = 30.0              # truncate/pad all clips to this duration
+default_model   = "wav2vec2emotional"   # "wav2vec2" | "wav2vec2emotional"
+
+# ── Train-time waveform augmentation (applied per __getitem__ on train split only)
+# Set ``augment_train = false`` to disable.  All perturbations are applied on the
+# raw waveform BEFORE the HuggingFace feature extractor's normalisation.
+[augmentation]
+augment_train        = false
+audio_gain           = 0.2          # random gain ∈ [1-g, 1+g]
+audio_snr_db         = 25.0         # additive Gaussian noise SNR (≥80 disables)
+audio_time_shift_sec = 0.5          # random shift up to this many seconds
+audio_num_time_masks = 2            # number of silence windows
+audio_time_mask_frac = 0.05         # width of each silence window (fraction of length)
+
+[training]
+num_workers = 0                     # macOS/MPS: keep at 0 to avoid kernel crashes
+seed        = 42
+grad_clip   = 1.0                   # gradient clipping (global)
+
+# ============================================================
+# Per-backbone sections.  Both share the same regularisation
+# stack: label_smoothing=0.1, weight_decay=5e-2, WeightedRandomSampler,
+# augmentation, differential LRs.
+# ============================================================
+
+[wav2vec2]
+# Speech-only Wav2Vec2 backbones used / considered (set ``model_name`` to one):
+#   "facebook/wav2vec2-base"           — 12 transformer layers, 95 M params (default).
+#   "facebook/wav2vec2-large"          — 24 transformer layers, 317 M params.
+#   "facebook/wav2vec2-large-960h"     — large fine-tuned on 960h LibriSpeech ASR.
+#   "facebook/wav2vec2-large-xlsr-53"  — multilingual XLS-R-53, 317 M params.
+model_name               = "facebook/wav2vec2-base"
+freeze_feature_extractor = true     # always freeze the CNN feature extractor
+freeze_layers            = 8        # freeze first 8/12 transformer layers
+label_smoothing          = 0.1
+
+[wav2vec2.training]
+epochs                  = 20
+batch_size              = 8         # audio tensors are large; keep small
+learning_rate           = 2e-5
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[wav2vec2.output]
+weights_dir  = "weights"
+weights_name = "wav2vec2_bah_best.pth"
+
+[wav2vec2emotional]
+# Emotion-pretrained Wav2Vec2 backbones used / considered (set ``model_name`` to one):
+#   "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+#       — XLS-R-large already fine-tuned on 7-class English speech-emotion (default).
+#   "audeering/wav2vec2-large-robust-12-ft-emotion-msp-dim"
+#       — large-robust fine-tuned on MSP-Podcast emotion dimensions.
+#   "superb/wav2vec2-base-superb-er"
+#       — wav2vec2-base fine-tuned on SUPERB emotion-recognition benchmark.
+# The original emotion head is replaced with a 2-class A/H head and fine-tuned
+# with a low LR — the emotion representations transfer well to A/H detection.
+model_name               = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+freeze_feature_extractor = true     # always freeze the CNN feature extractor
+freeze_layers            = 20       # freeze first 20/24 transformer layers (xlsr-large)
+label_smoothing          = 0.1
+
+[wav2vec2emotional.training]
+epochs                  = 20
+batch_size              = 4         # xlsr-large is bigger; keep batch small
+learning_rate           = 1e-5      # lower LR — model already fine-tuned, gentle adaptation
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[wav2vec2emotional.output]
+weights_dir  = "weights"
+weights_name = "wav2vec2emotional_bah_best.pth"

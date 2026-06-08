@@ -3,3 +3,8 @@ public/
 yolo11x-seg.pt*
 __pycache__/
 .DS_Store*
+kaggle_personal
+pycheck.py
+data.zip
+.ipynb_checkpoints/
+*.pth

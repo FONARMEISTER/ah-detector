@@ -1,0 +1,115 @@
+# ============================================================
+# BAH Dataset — Text Classification Training Configuration
+# ============================================================
+# A single script (text/src/text_training.py) trains any of the three
+# backbones below; pick one via the [text].default_model field or the
+# command-line argument.
+# ============================================================
+
+[text]
+max_length    = 128                # max token sequence length
+default_model = "distilbert"       # "bert" | "roberta" | "distilbert" | "distilroberta_emotional"
+
+# ── Train-time text augmentation (applied per __getitem__ on train split only)
+# Set ``augment_train = false`` to disable.  ``[MASK]`` token defaults to the
+# tokenizer's own mask token when available; override here only if needed.
+[augmentation]
+augment_train  = true
+text_mask_prob = 0.25              # P(replace word with [MASK])
+text_drop_prob = 0.15              # P(drop word entirely)
+# text_mask_token = "[MASK]"       # auto-resolved from tokenizer if commented out
+
+[training]
+num_workers = 0                    # macOS/MPS: keep at 0 to avoid kernel crashes
+seed        = 42
+grad_clip   = 1.0                  # gradient clipping (global)
+
+# ============================================================
+# Per-backbone sections.  All three share the same regularisation
+# stack tuned on DistilBERT: label_smoothing=0.1, weight_decay=5e-2,
+# WeightedRandomSampler, augmentation, differential LRs.
+# ============================================================
+
+[bert]
+# BERT backbones used / considered (set ``model_name`` to one):
+#   "bert-base-uncased"      — 12 layers, 110 M params (default).
+#   "bert-base-cased"        — 12 layers, case-sensitive variant.
+#   "bert-large-uncased"     — 24 layers, 340 M params.
+model_name      = "bert-base-uncased"
+freeze_layers   = 8                # freeze embeddings + first N/12 encoder layers
+label_smoothing = 0.1
+
+[bert.training]
+epochs                  = 20
+batch_size              = 16
+learning_rate           = 2e-5
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[bert.output]
+weights_dir  = "weights"
+weights_name = "bert_bah_best.pth"
+
+[roberta]
+# RoBERTa backbones used / considered (set ``model_name`` to one):
+#   "roberta-base"           — 12 layers, 125 M params (default).
+#   "roberta-large"          — 24 layers, 355 M params.
+#   "distilroberta-base"     — 6 layers, distilled RoBERTa.
+model_name      = "roberta-base"
+freeze_layers   = 8                # freeze embeddings + first N/12 encoder layers
+label_smoothing = 0.1
+
+[roberta.training]
+epochs                  = 20
+batch_size              = 16
+learning_rate           = 2e-5
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[roberta.output]
+weights_dir  = "weights"
+weights_name = "roberta_bah_best.pth"
+
+[distilbert]
+# DistilBERT backbones used / considered (set ``model_name`` to one):
+#   "distilbert-base-uncased"            — 6 layers, 66 M params (default).
+#   "distilbert-base-cased"              — 6 layers, case-sensitive.
+#   "distilbert-base-multilingual-cased" — 6 layers, 104 languages.
+model_name      = "distilbert-base-uncased"
+freeze_layers   = 4                # freeze embeddings + first N/6 encoder layers
+label_smoothing = 0.1
+
+[distilbert.training]
+epochs                  = 20
+batch_size              = 16
+learning_rate           = 2e-5
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[distilbert.output]
+weights_dir  = "weights"
+weights_name = "distilbert_bah_best.pth"
+
+[distilroberta_emotional]
+# DistilRoBERTa pretrained on emotion classification (7-way: anger, disgust,
+# fear, joy, neutral, sadness, surprise).  The emotion head is discarded; we
+# re-use the emotion-tuned encoder as a feature extractor for our binary A/H
+# task.  Rationale: A/H is closely related to affect (anxiety, frustration,
+# hesitation), so an encoder pretrained on emotion should be a stronger
+# starting point than vanilla distilbert.  Same DistilRoBERTa architecture as
+# `distilroberta-base` (6 layers, 82 M params, RoBERTa BPE tokenizer).
+#   "j-hartmann/emotion-english-distilroberta-base"  — default.
+model_name      = "j-hartmann/emotion-english-distilroberta-base"
+freeze_layers   = 4                # freeze embeddings + first N/6 encoder layers
+label_smoothing = 0.1
+
+[distilroberta_emotional.training]
+epochs                  = 20
+batch_size              = 16
+learning_rate           = 2e-5
+weight_decay            = 5e-2
+early_stopping_patience = 5
+
+[distilroberta_emotional.output]
+weights_dir  = "weights"
+weights_name = "distilroberta_emotional_bah_best.pth"
