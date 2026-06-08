@@ -10,9 +10,7 @@
 # Активируй своё окружение
 source /home3/iasarantsev/bin/activate
 
-echo $VIRTUAL_ENV
-
-pip install -r /home3/iasarantsev/requirements.txt
+pip install -r /home3/iasarantsev/requirements.txt -q
 
 # Запусти блокнот
 python3 -u ./vit_training_nonsegmented.py

@@ -8,9 +8,7 @@
 
 source /home3/iasarantsev/bin/activate
 
-echo $VIRTUAL_ENV
-
-pip install -r /home3/iasarantsev/requirements.txt
+pip install -r /home3/iasarantsev/requirements.txt -q
 
 python3 -u ./videomae_training.py
 
