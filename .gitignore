@@ -8,3 +8,4 @@ pycheck.py
 data.zip
 .ipynb_checkpoints/
 *.pth
+recordings/

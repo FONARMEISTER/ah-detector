@@ -1,0 +1,139 @@
+# ============================================================
+# BAH Dataset — Late-Fusion Training Configuration
+# ============================================================
+#
+# This config is consumed ONLY by ``multimodal/src/late_fusion_training.py``.
+# The original ``config.toml`` remains the configuration for stage-1
+# embedding extraction and the early-fusion baseline trainer
+# (``fusion_training.py``).
+#
+# Pipeline reminder
+# -----------------
+#   1) multimodal/src/extract_{text,audio,video}.py — produce per-modality
+#      multi-view embedding caches (uses ``config.toml``).
+#   2) multimodal/src/late_fusion_training.py        — trains one MLP per
+#      modality on its cached embeddings, then fuses their softmax
+#      predictions via mean / val-tuned weighted / meta-LR stacking.
+#
+# Only the keys actually read by ``late_fusion_training.py`` are kept here;
+# everything irrelevant to the late-fusion path was deliberately omitted to
+# keep this file short and reviewable.
+
+# ── Fusion-level settings ─────────────────────────────────────────────────────
+[fusion]
+# Per-modality embedding dimensionalities — must match the caches.
+text_dim   = 768
+audio_dim  = 256
+video_dim  = 768
+
+# Which modalities to include in the late-fusion pipeline.  Drop one to run
+# an ablation (e.g. ["text", "video"]) without recomputing caches.
+active_modalities = ["text", "audio", "video"]
+
+# Directory holding ``{text,audio,video}_embs_{train,val,test}.pt`` —
+# produced by the stage-1 extractors above.
+cache_dir = "multimodal/cache"
+
+# Which video backbone's cache to use for fusion.  Must match a backbone
+# previously extracted via extract_video.py (i.e. the file
+# ``multimodal/cache/video_<backbone>_embs_<split>.pt`` must exist).
+# "swin"      → uses video_swin_embs_<split>.pt
+# "videomae"  → uses video_videomae_embs_<split>.pt
+video_backbone = "swin"
+
+# Which audio backbone's cache to use for fusion.  Must match a backbone
+# previously extracted via extract_audio.py (i.e. the file
+# ``multimodal/cache/audio_<backbone>_embs_<split>.pt`` must exist).
+# "wav2vec2emotional" → uses audio_wav2vec2emotional_embs_<split>.pt
+# "hubert"            → uses audio_hubert_embs_<split>.pt
+audio_backbone = "wav2vec2emotional"
+
+# ── Global per-modality defaults ──────────────────────────────────────────────
+# Each ``[fusion.modality.<mod>]`` block below layers on top of these.  Any
+# key omitted from a per-modality block falls through to these values.
+hidden_dims     = [128]
+dropout         = 0.3
+label_smoothing = 0.1
+# Optional global input-dropout (applied on the raw scaled embedding before
+# the first Linear).  Per-modality block can override.
+modality_input_dropout = 0.0
+
+# ── Per-modality MLP-head overrides ───────────────────────────────────────────
+# Supported keys per block (all optional, defaults from above):
+#   hidden_dims       (list[int])   layer sizes for the MLP head
+#   dropout           (float)       hidden-layer dropout
+#   input_dropout     (float)       dropout on the raw embedding before Linear
+#   label_smoothing   (float)       CE label smoothing
+#   learning_rate     (float)       AdamW LR (falls back to [training] LR)
+#   weight_decay      (float)       AdamW WD (falls back to [training] WD)
+#   epochs            (int)         max epochs (cosine T_max)
+#   patience          (int)         early-stopping patience on val macro-F1
+#
+# Defaults are calibrated to the per-modality diagnoses observed on the BAH
+# baseline run (text: well-tuned, audio: underfits, video: overfits hard).
+
+[fusion.modality.text]
+# Text head was already strong with the defaults; keep it untouched.
+hidden_dims     = [128]
+dropout         = 0.3
+input_dropout   = 0.0
+weight_decay    = 5e-2
+
+[fusion.modality.audio]
+# Audio was underfitting (tr_f1≈0.60, va_f1≈0.48). Give it more capacity
+# and dial dropout / WD down so the wav2vec2-emotional 256-d projection has
+# room to fit.  Audio benefits from a slightly higher learning rate to push
+# through the early loss plateau seen in epoch 1-7.
+hidden_dims     = [256, 128]
+dropout         = 0.2
+input_dropout   = 0.0
+learning_rate   = 1e-4
+weight_decay    = 1e-2
+
+[fusion.modality.video]
+# Video overfit catastrophically in the first run (tr_f1≈0.89 vs va_f1≈0.48).
+# The heavy regularisation (dropout=0.5, input_dropout=0.2, wd=0.1, dim=64)
+# over-corrected and dropped val F1 by ~0.05 vs the unregularised baseline.
+# New settings: moderate capacity (128-d head), lighter dropout, lower WD,
+# no input dropout — enough to prevent memorisation without starving the head.
+hidden_dims     = [128]
+dropout         = 0.3
+input_dropout   = 0.0
+weight_decay    = 3e-2
+patience        = 10
+
+# ── Training defaults (apply to all per-modality heads unless overridden) ─────
+[training]
+epochs                  = 50
+batch_size              = 16
+learning_rate           = 5e-5
+weight_decay            = 5e-2
+num_workers             = 0
+seed                    = 42
+grad_clip               = 1.0
+scheduler               = "cosine"
+early_stopping_patience = 5
+
+# ── PSO fusion optimizer ──────────────────────────────────────────────────────
+# Particle Swarm Optimisation jointly searches per-modality weights AND
+# per-modality temperatures on the val set (maximises macro-F1).
+# Two variants are run per subset: "prob" space and "logit" space.
+# Increase n_particles / n_iter for a more thorough search at the cost of
+# extra wall-clock time (each iteration is pure NumPy, so it's fast).
+[pso]
+n_particles = 40    # swarm size
+n_iter      = 200   # number of PSO iterations
+# PSO hyperparameters (standard values; rarely need tuning)
+w_inertia   = 0.7   # inertia weight (momentum)
+c1          = 1.5   # cognitive acceleration (particle → personal best)
+c2          = 1.5   # social acceleration    (particle → global best)
+T_min       = 0.25  # lower bound for temperature search
+T_max       = 5.0   # upper bound for temperature search
+
+# ── Output ────────────────────────────────────────────────────────────────────
+[output]
+weights_dir = "weights"
+# weights_name is unused by late_fusion (it writes per-modality files
+# named ``late_fusion_<mod>_best.pth`` plus ``late_fusion_meta.joblib``)
+# but is kept for parity with the other configs.
+weights_name = "late_fusion_bah.pth"

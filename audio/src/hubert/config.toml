@@ -1,0 +1,43 @@
+# ============================================================
+# BAH Dataset — HuBERT Audio Classification Training Configuration
+# ============================================================
+
+[data]
+num_classes = 2
+class_names = ["No A-H", "With A-H"]
+
+[audio]
+sample_rate     = 16000   # Hz — HuBERT native sample rate
+max_length_sec  = 30.0    # truncate/pad all clips to this duration
+
+[training]
+epochs        = 20
+batch_size    = 8         # audio tensors are large; keep small
+learning_rate = 2e-5
+weight_decay  = 1e-2
+num_workers   = 0         # macOS/MPS: keep at 0 to avoid kernel crashes
+seed          = 42
+grad_clip     = 1.0
+scheduler     = "cosine"  # "cosine" | "step" | "none"
+early_stopping_patience = 5
+
+[hubert]
+# superb/hubert-large-superb-er
+# HuBERT-Large fine-tuned on emotion recognition (SUPERB benchmark).
+# We replace its head with a 2-class A/H head and fine-tune the whole model
+# with a low LR — the emotion representations transfer well to A/H detection.
+model_name    = "superb/hubert-large-superb-er"
+freeze_feature_extractor = true   # always freeze the CNN feature extractor
+freeze_layers = 20                # freeze first 20/24 transformer layers (hubert-large has 24)
+label_smoothing = 0.1     # CE label smoothing — softer targets
+
+[hubert.training]
+epochs        = 20
+batch_size    = 4         # hubert-large is big; keep batch small
+learning_rate = 1e-5      # lower LR — model already fine-tuned, needs gentle adaptation
+weight_decay  = 5e-2
+early_stopping_patience = 5
+
+[hubert.output]
+weights_dir  = "weights"
+weights_name = "hubert_bah_best.pth"

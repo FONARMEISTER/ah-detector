@@ -40,21 +40,53 @@ model_name   = "j-hartmann/emotion-english-distilroberta-base"
 max_length   = 128
 weights_path = "text/weights/distilroberta_emotional_bah_best.pth"
 
-# ── Audio backbone (Wav2Vec2-Emotional) ───────────────────────────────────────
+# ── Audio backbone ────────────────────────────────────────────────────────────
+# ``backbone`` selects which encoder (and therefore which fine-tuned weights /
+# cache file) we read.  Both backbones expose a 256-d projected embedding
+# (classifier_proj_size), so downstream fusion code is unaffected by the
+# choice — only the cache filename changes (``audio_<backbone>_embs_<split>.pt``).
 [audio]
-model_name      = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+backbone        = "wav2vec2emotional"   # "wav2vec2emotional" | "hubert"
+# Shared knobs (used by whichever backbone is selected).
 sample_rate     = 16000
 max_length_sec  = 30.0
-weights_path    = "audio/weights/wav2vec2emotional_bah_best.pth"
 
-# ── Video backbone (Swin-Tiny) ────────────────────────────────────────────────
+# Per-backbone overrides.  The active block is the one whose name matches
+# ``backbone``.  Caches live at ``audio_<backbone>_embs_<split>.pt`` so
+# wav2vec2emotional and hubert embeddings can coexist on disk.
+[audio.wav2vec2emotional]
+model_name   = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+weights_path = "audio/weights/wav2vec2emotional_bah_best.pth"
+
+[audio.hubert]
+model_name   = "superb/hubert-large-superb-er"
+weights_path = "audio/weights/hubert_bah_best.pth"
+
+# ── Video backbone ────────────────────────────────────────────────────────────
+# ``backbone`` selects which encoder (and therefore which fine-tuned weights /
+# clip length / cache file) we read.  Both backbones expose a 768-d temporal
+# pool, so downstream fusion code is unaffected by the choice — only the
+# cache filename changes (see ``cache_path_for`` in ``_extract_common.py``).
 [video]
-model_name   = "microsoft/swin-tiny-patch4-window7-224"
+backbone     = "swin"     # "swin" | "videomae"
+# Shared knobs (used by whichever backbone is selected).
 image_size   = 224
+label_agg    = "any"
+
+# Per-backbone overrides.  The active block is the one whose name matches
+# ``backbone``.  Caches live at ``video_<backbone>_embs_<split>.pt`` so swin
+# and videomae embeddings can coexist on disk.
+[video.swin]
+model_name   = "microsoft/swin-tiny-patch4-window7-224"
 clip_len     = 32
 clip_stride  = 16
-label_agg    = "any"
 weights_path = "video/weights/swin_bah_best.pth"
+
+[video.videomae]
+model_name   = "MCG-NJU/videomae-base"
+clip_len     = 16
+clip_stride  = 8
+weights_path = "video/weights/videomae_bah_best.pth"
 
 # ── Multi-view extraction (stage 1) ───────────────────────────────────────────
 [extraction]
@@ -217,6 +249,10 @@ seed          = 42
 grad_clip     = 1.0
 scheduler     = "cosine"
 early_stopping_patience = 5
+
+# NOTE: Late-fusion per-modality overrides have been moved to
+# ``config_late_fusion.toml`` and are consumed exclusively by
+# ``late_fusion_training.py``.
 
 # ── Output ────────────────────────────────────────────────────────────────────
 [output]

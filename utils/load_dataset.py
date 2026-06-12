@@ -1569,6 +1569,8 @@ def get_cached_multimodal_splits(
     cache_dir,
     train_random_view: bool = True,
     expected_fingerprint: Optional[dict] = None,
+    video_backbone: Optional[str] = None,
+    audio_backbone: Optional[str] = None,
 ) -> Dict[str, "MultimodalCachedFusionDataset"]:
     """
     Convenience constructor: build cached datasets for train/val/test from
@@ -1585,14 +1587,36 @@ def get_cached_multimodal_splits(
     expected_fingerprint : dict or None
         Optional ``{"text": fp, "audio": fp, "video": fp}`` mapping;
         mismatches emit UserWarnings.
+    video_backbone : str or None
+        If set (e.g. ``"swin"`` or ``"videomae"``), loads the
+        backbone-tagged video cache file
+        ``video_<backbone>_embs_<split>.pt`` (produced by
+        ``extract_video.py`` with the corresponding backbone selector).
+        If None, falls back to the legacy unsuffixed
+        ``video_embs_<split>.pt`` filename.
+    audio_backbone : str or None
+        If set (e.g. ``"wav2vec2emotional"`` or ``"hubert"``), loads the
+        backbone-tagged audio cache file
+        ``audio_<backbone>_embs_<split>.pt`` (produced by
+        ``extract_audio.py`` with the corresponding backbone selector).
+        If None, falls back to the legacy unsuffixed
+        ``audio_embs_<split>.pt`` filename.
     """
     cache_dir = Path(cache_dir)
 
     def _paths_for(split: str):
+        if video_backbone:
+            vpath = cache_dir / f"video_{video_backbone}_embs_{split}.pt"
+        else:
+            vpath = cache_dir / f"video_embs_{split}.pt"
+        if audio_backbone:
+            apath = cache_dir / f"audio_{audio_backbone}_embs_{split}.pt"
+        else:
+            apath = cache_dir / f"audio_embs_{split}.pt"
         return {
             "text_cache_path":  cache_dir / f"text_embs_{split}.pt",
-            "audio_cache_path": cache_dir / f"audio_embs_{split}.pt",
-            "video_cache_path": cache_dir / f"video_embs_{split}.pt",
+            "audio_cache_path": apath,
+            "video_cache_path": vpath,
         }
 
     return {

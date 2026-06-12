@@ -3,9 +3,9 @@ Audio Embedding Extraction (stage 1 — audio only)
 ==================================================
 
 Pre-computes K augmented embeddings per sample using the fine-tuned audio
-backbone (Wav2Vec2 / Wav2Vec2-Emotional), then saves them to::
+backbone (Wav2Vec2-Emotional or HuBERT), then saves them to::
 
-    <cache_dir>/audio_embs_<split>.pt
+    <cache_dir>/audio_<backbone>_embs_<split>.pt
 
 Usage
 -----
@@ -102,14 +102,44 @@ def _extract_one_split(
     }
 
 
+def _resolve_audio_cfg(CFG: dict) -> dict:
+    """
+    Layer the shared ``[audio]`` block with the active per-backbone block.
+
+    The resolved dict carries everything the extraction pipeline needs:
+    ``backbone``, ``model_name``, ``sample_rate``, ``max_length_sec``,
+    ``weights_path``.  Per-backbone keys override shared ones; shared keys
+    provide fallbacks.
+    """
+    a = dict(CFG.get("audio", {}))
+    backbone = str(a.get("backbone", "wav2vec2emotional")).lower()
+    sub = a.get(backbone, {}) or {}
+    if not sub:
+        # Backward-compat: treat the flat legacy block (model_name/weights_path
+        # at the top level of [audio]) as the wav2vec2emotional sub-block.
+        sub = {
+            k: a[k] for k in ("model_name", "weights_path")
+            if k in a
+        }
+    resolved = {**a, **sub, "backbone": backbone}
+    # Strip nested sub-blocks from the flat view to avoid confusion later.
+    for k in ("wav2vec2emotional", "hubert"):
+        resolved.pop(k, None)
+    return resolved
+
+
 def main():
-    from embedders import AudioEmbedder
+    from embedders import build_audio_embedder
 
     CFG = toml.load("config.toml")
     aug_cfg = CFG.get("augmentation", {})
     K_TRAIN, K_EVAL, AUGMENT, BATCH, SEED, SPLITS = load_extraction_settings(
         CFG, modality="audio"
     )
+
+    acfg = _resolve_audio_cfg(CFG)
+    BACKBONE = acfg["backbone"]
+    MODEL_NAME = acfg["model_name"]
 
     CACHE_DIR_RAW = CFG["fusion"].get("cache_dir", "multimodal/cache")
     CACHE_DIR = REPO_ROOT / CACHE_DIR_RAW
@@ -119,15 +149,16 @@ def main():
     FORCE = bool(int(os.environ.get("FORCE_EXTRACT", "0")))
     WEIGHTS = Path(
         os.environ.get(
-            "AUDIO_WEIGHTS", str(REPO_ROOT / CFG["audio"]["weights_path"])
+            "AUDIO_WEIGHTS", str(REPO_ROOT / acfg["weights_path"])
         )
     )
 
     print("=" * 70)
-    print("Audio Embedding Extraction — BAH A/H Multimodal")
+    print(f"Audio Embedding Extraction — BAH A/H Multimodal  (backbone={BACKBONE})")
     print("=" * 70)
     print(f"Device          : {DEVICE}")
     print(f"Cache dir       : {CACHE_DIR}")
+    print(f"Backbone        : {BACKBONE}")
     print(f"K train         : {K_TRAIN}")
     print(f"K eval          : {K_EVAL}")
     print(f"Augment train   : {AUGMENT}")
@@ -135,7 +166,7 @@ def main():
     print(f"Force re-extract: {FORCE}")
     print(f"Batch size      : {BATCH}")
     print(f"Seed            : {SEED}")
-    print(f"Model           : {CFG['audio']['model_name']}")
+    print(f"Model           : {MODEL_NAME}")
     print(f"Weights         : {WEIGHTS}")
     print("=" * 70)
 
@@ -146,18 +177,19 @@ def main():
         do_aug = AUGMENT and (split == "train")
         return {
             "modality": "audio",
+            "backbone": BACKBONE,
             "num_views": K,
             "augment": do_aug,
             "augmentation_cfg": aug_cfg if do_aug else None,
-            "model_name": CFG["audio"]["model_name"],
-            "sample_rate": CFG["audio"]["sample_rate"],
-            "max_length_sec": CFG["audio"]["max_length_sec"],
+            "model_name": MODEL_NAME,
+            "sample_rate": acfg["sample_rate"],
+            "max_length_sec": acfg["max_length_sec"],
             "seed": SEED,
         }
 
     splits_to_do = []
     for split in SPLITS:
-        cache_path = cache_path_for(CACHE_DIR, "audio", split)
+        cache_path = cache_path_for(CACHE_DIR, "audio", split, variant=BACKBONE)
         if check_existing_cache(cache_path, fp, expected_cfg(split), FORCE):
             print(
                 f"[{split:5s}] Cache OK at {cache_path} — skipping (use "
@@ -170,19 +202,20 @@ def main():
         print("\nAll audio caches up to date — nothing to do.")
         return
 
-    print("\n[Backbone] Loading audio encoder ...")
-    audio_embedder = AudioEmbedder(
-        model_name=CFG["audio"]["model_name"],
+    print(f"\n[Backbone] Loading {BACKBONE} audio encoder ...")
+    audio_embedder = build_audio_embedder(
+        backbone=BACKBONE,
+        model_name=MODEL_NAME,
         weights_path=WEIGHTS,
         device=DEVICE,
-        sample_rate=CFG["audio"]["sample_rate"],
-        max_length_sec=CFG["audio"]["max_length_sec"],
+        sample_rate=int(acfg["sample_rate"]),
+        max_length_sec=float(acfg["max_length_sec"]),
     )
 
     for split in splits_to_do:
         K = K_TRAIN if split == "train" else K_EVAL
-        cache_path = cache_path_for(CACHE_DIR, "audio", split)
-        print(f"\n{'=' * 70}\n[{split:5s}] Audio → {cache_path}\n{'=' * 70}")
+        cache_path = cache_path_for(CACHE_DIR, "audio", split, variant=BACKBONE)
+        print(f"\n{'=' * 70}\n[{split:5s}] Audio ({BACKBONE}) → {cache_path}\n{'=' * 70}")
         t0 = time.time()
         result = _extract_one_split(
             split=split,
@@ -207,7 +240,7 @@ def main():
         torch.save(payload, cache_path)
         print(f"[{split:5s}] Saved → {cache_path}")
 
-    print("\nAll requested audio splits processed.")
+    print(f"\nAll requested audio splits processed (backbone={BACKBONE}).")
 
 
 if __name__ == "__main__":

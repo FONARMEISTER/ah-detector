@@ -1,0 +1,55 @@
+# ============================================================
+# BAH A/H Detection — Live Demo Configuration
+# ============================================================
+
+[paths]
+# All paths are relative to the repo root.
+repo_root       = "."
+recordings_dir  = "demo/recordings"
+yolo_model      = "yolo11x-seg.pt"
+
+# ── Text backbone (DistilBERT fine-tuned on BAH) ─────────────────────────────
+[text]
+model_name   = "distilbert-base-uncased"
+weights_path = "text/weights/distilbert_bah_best.pth"
+max_length   = 128
+
+# ── Audio backbone (Wav2Vec2-Emotional fine-tuned on BAH) ────────────────────
+[audio]
+model_name     = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
+weights_path   = "audio/weights/wav2vec2emotional_bah_best.pth"
+sample_rate    = 16000
+max_length_sec = 30.0
+
+# ── Video backbone (VideoMAE fine-tuned on BAH) ─────────────────────────────
+[video]
+backbone     = "videomae"
+model_name   = "MCG-NJU/videomae-base"
+weights_path = "video/weights/videomae_bah_best.pth"
+image_size   = 224
+clip_len     = 16
+
+# ── Late-fusion MLP heads + scalers + meta ───────────────────────────────────
+[fusion]
+weights_dir = "multimodal/weights"
+# Per-modality MLP head checkpoints (saved by late_fusion_training.py).
+text_head    = "late_fusion_text_best.pth"
+audio_head   = "late_fusion_audio_best.pth"
+video_head   = "late_fusion_video_best.pth"
+# Per-modality StandardScaler checkpoints.
+text_scaler  = "late_fusion_text_best.scaler.joblib"
+audio_scaler = "late_fusion_audio_best.scaler.joblib"
+video_scaler = "late_fusion_video_best.scaler.joblib"
+# Meta artifact (temperatures, weights, meta-LR stacker).
+meta         = "late_fusion_meta.joblib"
+
+# ── Whisper STT ──────────────────────────────────────────────────────────────
+[whisper]
+model_size = "base"   # "tiny", "base", "small", "medium", "large"
+
+# ── Camera / microphone ─────────────────────────────────────────────────────
+[camera]
+device_index = 0
+fps          = 30
+width        = 640
+height       = 480

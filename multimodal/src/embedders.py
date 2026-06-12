@@ -202,6 +202,154 @@ class AudioEmbedder:
         return self.embed_from_encoded(enc)
 
 
+class HuBERTEmbedder:
+    """
+    Wraps a frozen ``HubertForSequenceClassification`` and extracts the
+    projected embedding (before the final linear classifier).
+
+    Mirrors :class:`AudioEmbedder` but uses ``model.hubert`` as the inner
+    encoder module instead of ``model.wav2vec2``.
+
+    Output dim: ``classifier_proj_size`` = 256.
+    """
+
+    def __init__(
+        self,
+        model_name: str,
+        weights_path,
+        device,
+        sample_rate: int = 16000,
+        max_length_sec: float = 30.0,
+    ):
+        from transformers import (
+            HubertForSequenceClassification,
+            Wav2Vec2FeatureExtractor,
+        )
+
+        self.device = device
+        self.sample_rate = sample_rate
+        self.max_samples = int(sample_rate * max_length_sec)
+
+        # HuBERT uses the same Wav2Vec2FeatureExtractor for preprocessing.
+        self.feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(model_name)
+        self.model = HubertForSequenceClassification.from_pretrained(
+            model_name,
+            num_labels=2,
+            ignore_mismatched_sizes=True,
+        ).to(device)
+
+        if weights_path is not None and Path(weights_path).exists():
+            state = torch.load(weights_path, map_location=device, weights_only=True)
+            missing, unexpected = self.model.load_state_dict(state, strict=False)
+            n_loaded = len(state) - len(unexpected)
+            print(
+                f"[HuBERTEmbedder] Loaded {n_loaded}/{len(state)} keys from {weights_path}"
+                f"  (missing={len(missing)}, unexpected={len(unexpected)})"
+            )
+        else:
+            print(
+                f"[HuBERTEmbedder] Weights not found at {weights_path} — "
+                "using pretrained HuggingFace weights"
+            )
+
+        self.model.eval()
+        for p in self.model.parameters():
+            p.requires_grad = False
+
+    @property
+    def dim(self) -> int:
+        return self.model.config.classifier_proj_size  # 256
+
+    def embed_from_encoded(self, encoded: dict) -> torch.Tensor:
+        """
+        Extract projected embedding from a pre-encoded batch dict.
+
+        Parameters
+        ----------
+        encoded : dict with keys ``input_values`` (and optionally
+                  ``attention_mask``), values are tensors already on device.
+
+        Returns
+        -------
+        Tensor of shape (N, classifier_proj_size).
+        """
+        with torch.no_grad():
+            outputs = self.model.hubert(**encoded)
+            hidden = outputs.last_hidden_state  # (N, T, hidden_size)
+
+            if "attention_mask" in encoded:
+                lengths = self.model._get_feat_extract_output_lengths(
+                    encoded["attention_mask"].sum(-1)
+                )
+                # Vectorised padding mask (avoids a Python loop over the batch).
+                B, T = hidden.shape[:2]
+                ar = torch.arange(T, device=hidden.device).unsqueeze(0).expand(B, T)
+                padding_mask = ar < lengths.to(hidden.device).long().unsqueeze(1)
+                hidden = hidden * padding_mask.unsqueeze(-1).float()
+                pooled = hidden.sum(1) / padding_mask.sum(1, keepdim=True).float().clamp(min=1)
+            else:
+                pooled = hidden.mean(1)
+
+            projected = self.model.projector(pooled)
+            return projected
+
+    def embed_waveforms(self, waveforms: torch.Tensor) -> torch.Tensor:
+        """
+        Convenience: run feature extractor → model on a batch of raw waveforms.
+
+        Parameters
+        ----------
+        waveforms : Tensor of shape (B, num_samples) on CPU or any device.
+
+        Returns
+        -------
+        Tensor of shape (B, classifier_proj_size).
+        """
+        # Feature extractor expects a list of 1-D numpy arrays / tensors.
+        wf_list = [w.detach().cpu().numpy() for w in waveforms]
+        enc = self.feature_extractor(
+            wf_list,
+            sampling_rate=self.sample_rate,
+            return_tensors="pt",
+            padding="max_length",
+            max_length=self.max_samples,
+            truncation=True,
+        )
+        enc = {k: v.to(self.device) for k, v in enc.items()}
+        return self.embed_from_encoded(enc)
+
+
+# ── Audio factory ─────────────────────────────────────────────────────────────
+
+def build_audio_embedder(backbone: str, model_name: str, weights_path, device,
+                         sample_rate: int = 16000, max_length_sec: float = 30.0):
+    """
+    Construct the correct audio embedder for the requested backbone.
+
+    Parameters
+    ----------
+    backbone : str
+        ``"wav2vec2emotional"`` → :class:`AudioEmbedder`
+        ``"hubert"``           → :class:`HuBERTEmbedder`
+    """
+    b = (backbone or "wav2vec2emotional").lower()
+    kwargs = dict(
+        model_name=model_name,
+        weights_path=weights_path,
+        device=device,
+        sample_rate=sample_rate,
+        max_length_sec=max_length_sec,
+    )
+    if b == "wav2vec2emotional":
+        return AudioEmbedder(**kwargs)
+    if b == "hubert":
+        return HuBERTEmbedder(**kwargs)
+    raise ValueError(
+        f"Unknown audio backbone {backbone!r}.  "
+        f"Expected 'wav2vec2emotional' or 'hubert'."
+    )
+
+
 # ── Video ─────────────────────────────────────────────────────────────────────
 
 class _SwinVideoClassifier(nn.Module):
@@ -276,3 +424,93 @@ class VideoEmbedder:
         """
         with torch.no_grad():
             return self.model(pixel_values)
+
+
+# ── VideoMAE ──────────────────────────────────────────────────────────────────
+
+class VideoMAEEmbedder:
+    """
+    Wraps a frozen ``VideoMAEForVideoClassification`` and extracts the
+    pre-classifier hidden vector (mean-pooled CLS-equivalent representation).
+
+    Implementation
+    --------------
+    VideoMAE takes a 5-D tensor ``(B, T, C, H, W)`` and returns a sequence of
+    patch+temporal tokens.  We forward through the inner ``model.videomae``
+    submodule (encoder + final layer norm), then mean-pool across the token
+    axis to obtain a single fixed-size video embedding, matching what the
+    classifier head sees just before its linear projection.
+
+    Output dim: ``hidden_size`` = 768 (VideoMAE-base).
+    """
+
+    def __init__(self, model_name: str, weights_path, device):
+        from transformers import VideoMAEForVideoClassification
+
+        self.device = device
+        self.model = VideoMAEForVideoClassification.from_pretrained(
+            model_name,
+            num_labels=2,
+            ignore_mismatched_sizes=True,
+        ).to(device)
+
+        if weights_path is not None and Path(weights_path).exists():
+            state = torch.load(weights_path, map_location=device, weights_only=True)
+            missing, unexpected = self.model.load_state_dict(state, strict=False)
+            n_loaded = len(state) - len(unexpected)
+            print(
+                f"[VideoMAEEmbedder] Loaded {n_loaded}/{len(state)} keys from "
+                f"{weights_path}  (missing={len(missing)}, "
+                f"unexpected={len(unexpected)})"
+            )
+        else:
+            print(
+                f"[VideoMAEEmbedder] Weights not found at {weights_path} — "
+                "using pretrained HuggingFace weights"
+            )
+
+        self.model.eval()
+        for p in self.model.parameters():
+            p.requires_grad = False
+
+    @property
+    def dim(self) -> int:
+        return self.model.config.hidden_size  # 768
+
+    def embed(self, pixel_values: torch.Tensor) -> torch.Tensor:
+        """
+        Parameters
+        ----------
+        pixel_values : (B, T, C, H, W) — already on device
+
+        Returns
+        -------
+        (B, hidden_size) — mean-pooled VideoMAE encoder output (the same
+        vector the classifier head consumes).
+        """
+        with torch.no_grad():
+            outputs = self.model.videomae(pixel_values=pixel_values)
+            # last_hidden_state: (B, num_tokens, hidden_size)
+            return outputs.last_hidden_state.mean(dim=1)
+
+
+# ── Factory ───────────────────────────────────────────────────────────────────
+
+def build_video_embedder(backbone: str, model_name: str, weights_path, device):
+    """
+    Construct the correct video embedder for the requested backbone.
+
+    Parameters
+    ----------
+    backbone : str
+        ``"swin"``       → :class:`VideoEmbedder`
+        ``"videomae"``   → :class:`VideoMAEEmbedder`
+    """
+    b = (backbone or "swin").lower()
+    if b == "swin":
+        return VideoEmbedder(model_name, weights_path, device)
+    if b == "videomae":
+        return VideoMAEEmbedder(model_name, weights_path, device)
+    raise ValueError(
+        f"Unknown video backbone {backbone!r}.  Expected 'swin' or 'videomae'."
+    )

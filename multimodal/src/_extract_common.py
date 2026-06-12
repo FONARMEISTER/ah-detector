@@ -126,6 +126,27 @@ def load_extraction_settings(cfg: dict, modality: str):
     return K_train, K_eval, augment, batch, seed, splits
 
 
-def cache_path_for(cache_dir: Path, modality: str, split: str) -> Path:
-    """Per-modality cache filename: e.g. ``text_embs_train.pt``."""
+def cache_path_for(
+    cache_dir: Path,
+    modality: str,
+    split: str,
+    variant: Optional[str] = None,
+) -> Path:
+    """Per-modality cache filename.
+
+    Examples
+    --------
+    >>> cache_path_for(d, "text", "train")
+    .../text_embs_train.pt
+    >>> cache_path_for(d, "video", "train", variant="swin")
+    .../video_swin_embs_train.pt
+    >>> cache_path_for(d, "video", "train", variant="videomae")
+    .../video_videomae_embs_train.pt
+
+    The ``variant`` slot is used by the video modality to keep separate
+    caches for each backbone (Swin vs VideoMAE) without overwriting one
+    another.  Modalities that omit ``variant`` keep the legacy filename.
+    """
+    if variant:
+        return Path(cache_dir) / f"{modality}_{variant}_embs_{split}.pt"
     return Path(cache_dir) / f"{modality}_embs_{split}.pt"

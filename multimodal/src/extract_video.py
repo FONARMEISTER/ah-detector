@@ -210,8 +210,34 @@ def _extract_one_split(
     }
 
 
+def _resolve_video_cfg(CFG: dict) -> dict:
+    """
+    Layer the shared ``[video]`` block with the active per-backbone block.
+
+    The resolved dict carries everything :func:`_extract_one_split` needs:
+    ``backbone``, ``model_name``, ``image_size``, ``clip_len``,
+    ``clip_stride``, ``label_agg``, ``weights_path``.  Per-backbone keys
+    override shared ones; shared keys provide fallbacks.
+    """
+    v = dict(CFG.get("video", {}))
+    backbone = str(v.get("backbone", "swin")).lower()
+    sub = v.get(backbone, {}) or {}
+    if not sub:
+        # Backward-compat: treat the flat legacy block (model_name/clip_len
+        # at the top level of [video]) as the swin sub-block.
+        sub = {
+            k: v[k] for k in ("model_name", "clip_len", "clip_stride", "weights_path")
+            if k in v
+        }
+    resolved = {**v, **sub, "backbone": backbone}
+    # Strip nested sub-blocks from the flat view to avoid confusion later.
+    for k in ("swin", "videomae"):
+        resolved.pop(k, None)
+    return resolved
+
+
 def main():
-    from embedders import VideoEmbedder
+    from embedders import build_video_embedder
     from transformers import AutoImageProcessor
 
     CFG = toml.load("config.toml")
@@ -219,6 +245,25 @@ def main():
     K_TRAIN, K_EVAL, AUGMENT, BATCH, SEED, SPLITS = load_extraction_settings(
         CFG, modality="video"
     )
+
+    vcfg = _resolve_video_cfg(CFG)
+    BACKBONE = vcfg["backbone"]
+    MODEL_NAME = vcfg["model_name"]
+    IMAGE_SIZE = int(vcfg["image_size"])
+    CLIP_LEN = int(vcfg["clip_len"])
+    CLIP_STRIDE = int(vcfg["clip_stride"])
+    LABEL_AGG = vcfg["label_agg"]
+
+    # Make the resolved values available to ``_extract_one_split`` through
+    # the legacy ``cfg["video"][...]`` access pattern without rewriting it.
+    CFG["video"] = {
+        **CFG.get("video", {}),
+        "model_name": MODEL_NAME,
+        "image_size": IMAGE_SIZE,
+        "clip_len": CLIP_LEN,
+        "clip_stride": CLIP_STRIDE,
+        "label_agg": LABEL_AGG,
+    }
 
     CACHE_DIR_RAW = CFG["fusion"].get("cache_dir", "multimodal/cache")
     CACHE_DIR = REPO_ROOT / CACHE_DIR_RAW
@@ -228,15 +273,16 @@ def main():
     FORCE = bool(int(os.environ.get("FORCE_EXTRACT", "0")))
     WEIGHTS = Path(
         os.environ.get(
-            "VIDEO_WEIGHTS", str(REPO_ROOT / CFG["video"]["weights_path"])
+            "VIDEO_WEIGHTS", str(REPO_ROOT / vcfg["weights_path"])
         )
     )
 
     print("=" * 70)
-    print("Video Embedding Extraction — BAH A/H Multimodal")
+    print(f"Video Embedding Extraction — BAH A/H Multimodal  (backbone={BACKBONE})")
     print("=" * 70)
     print(f"Device          : {DEVICE}")
     print(f"Cache dir       : {CACHE_DIR}")
+    print(f"Backbone        : {BACKBONE}")
     print(f"K train         : {K_TRAIN}")
     print(f"K eval          : {K_EVAL}")
     print(f"Augment train   : {AUGMENT}")
@@ -244,8 +290,9 @@ def main():
     print(f"Force re-extract: {FORCE}")
     print(f"Batch size      : {BATCH}")
     print(f"Seed            : {SEED}")
-    print(f"Model           : {CFG['video']['model_name']}")
+    print(f"Model           : {MODEL_NAME}")
     print(f"Weights         : {WEIGHTS}")
+    print(f"Clip len/stride : {CLIP_LEN}/{CLIP_STRIDE}")
     print("=" * 70)
 
     fp = weights_fingerprint_one(WEIGHTS)
@@ -255,20 +302,21 @@ def main():
         do_aug = AUGMENT and (split == "train")
         return {
             "modality": "video",
+            "backbone": BACKBONE,
             "num_views": K,
             "augment": do_aug,
             "augmentation_cfg": aug_cfg if do_aug else None,
-            "model_name": CFG["video"]["model_name"],
-            "image_size": CFG["video"]["image_size"],
-            "clip_len": CFG["video"]["clip_len"],
-            "clip_stride": CFG["video"]["clip_stride"],
-            "label_agg": CFG["video"]["label_agg"],
+            "model_name": MODEL_NAME,
+            "image_size": IMAGE_SIZE,
+            "clip_len": CLIP_LEN,
+            "clip_stride": CLIP_STRIDE,
+            "label_agg": LABEL_AGG,
             "seed": SEED,
         }
 
     splits_to_do = []
     for split in SPLITS:
-        cache_path = cache_path_for(CACHE_DIR, "video", split)
+        cache_path = cache_path_for(CACHE_DIR, "video", split, variant=BACKBONE)
         if check_existing_cache(cache_path, fp, expected_cfg(split), FORCE):
             print(
                 f"[{split:5s}] Cache OK at {cache_path} — skipping (use "
@@ -281,18 +329,19 @@ def main():
         print("\nAll video caches up to date — nothing to do.")
         return
 
-    print("\n[Backbone] Loading video encoder ...")
-    video_processor = AutoImageProcessor.from_pretrained(CFG["video"]["model_name"])
-    video_embedder = VideoEmbedder(
-        model_name=CFG["video"]["model_name"],
+    print(f"\n[Backbone] Loading {BACKBONE} video encoder ...")
+    video_processor = AutoImageProcessor.from_pretrained(MODEL_NAME)
+    video_embedder = build_video_embedder(
+        backbone=BACKBONE,
+        model_name=MODEL_NAME,
         weights_path=WEIGHTS,
         device=DEVICE,
     )
 
     for split in splits_to_do:
         K = K_TRAIN if split == "train" else K_EVAL
-        cache_path = cache_path_for(CACHE_DIR, "video", split)
-        print(f"\n{'=' * 70}\n[{split:5s}] Video → {cache_path}\n{'=' * 70}")
+        cache_path = cache_path_for(CACHE_DIR, "video", split, variant=BACKBONE)
+        print(f"\n{'=' * 70}\n[{split:5s}] Video ({BACKBONE}) → {cache_path}\n{'=' * 70}")
         t0 = time.time()
         result = _extract_one_split(
             split=split,
@@ -320,7 +369,7 @@ def main():
         torch.save(payload, cache_path)
         print(f"[{split:5s}] Saved → {cache_path}")
 
-    print("\nAll requested video splits processed.")
+    print(f"\nAll requested video splits processed (backbone={BACKBONE}).")
 
 
 if __name__ == "__main__":
