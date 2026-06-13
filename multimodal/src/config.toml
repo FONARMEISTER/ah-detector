@@ -46,7 +46,7 @@ weights_path = "text/weights/distilroberta_emotional_bah_best.pth"
 # (classifier_proj_size), so downstream fusion code is unaffected by the
 # choice — only the cache filename changes (``audio_<backbone>_embs_<split>.pt``).
 [audio]
-backbone        = "wav2vec2emotional"   # "wav2vec2emotional" | "hubert"
+backbone        = "hubert"   # "wav2vec2emotional" | "hubert"
 # Shared knobs (used by whichever backbone is selected).
 sample_rate     = 16000
 max_length_sec  = 30.0
@@ -68,7 +68,7 @@ weights_path = "audio/weights/hubert_bah_best.pth"
 # pool, so downstream fusion code is unaffected by the choice — only the
 # cache filename changes (see ``cache_path_for`` in ``_extract_common.py``).
 [video]
-backbone     = "swin"     # "swin" | "videomae"
+backbone     = "videomae"     # "swin" | "videomae"
 # Shared knobs (used by whichever backbone is selected).
 image_size   = 224
 label_agg    = "any"

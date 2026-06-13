@@ -39,7 +39,7 @@ cache_dir = "multimodal/cache"
 # ``multimodal/cache/video_<backbone>_embs_<split>.pt`` must exist).
 # "swin"      → uses video_swin_embs_<split>.pt
 # "videomae"  → uses video_videomae_embs_<split>.pt
-video_backbone = "swin"
+video_backbone = "videomae"
 
 # Which audio backbone's cache to use for fusion.  Must match a backbone
 # previously extracted via extract_audio.py (i.e. the file
@@ -73,34 +73,52 @@ modality_input_dropout = 0.0
 # baseline run (text: well-tuned, audio: underfits, video: overfits hard).
 
 [fusion.modality.text]
-# Text head was already strong with the defaults; keep it untouched.
-hidden_dims     = [128]
-dropout         = 0.3
-input_dropout   = 0.0
-weight_decay    = 5e-2
-
-[fusion.modality.audio]
-# Audio was underfitting (tr_f1≈0.60, va_f1≈0.48). Give it more capacity
-# and dial dropout / WD down so the wav2vec2-emotional 256-d projection has
-# room to fit.  Audio benefits from a slightly higher learning rate to push
-# through the early loss plateau seen in epoch 1-7.
 hidden_dims     = [256, 128]
 dropout         = 0.2
 input_dropout   = 0.0
-learning_rate   = 1e-4
+learning_rate   = 1e-3
 weight_decay    = 1e-2
+normalization   = "l2"
+gaussian_noise  = 0
+use_batchnorm   = true
+activation      = "relu"
+scheduler       = "plateau"
+epochs          = 50
+patience        = 20
+
+[fusion.modality.audio]
+#   • L2 normalization instead of StandardScaler (Run.ipynb uses linalg_array)
+#   • GaussianNoise(0.025) at input (data augmentation / regularisation)
+#   • BatchNorm after each hidden Linear (before activation)
+#   • ReLU activation instead of GELU
+#   • Much higher LR (1e-3 vs 1e-4) with ReduceLROnPlateau scheduler
+#   • Longer patience (20 vs 5) to let the model converge through plateaus
+hidden_dims     = [256, 128]
+dropout         = 0.2
+input_dropout   = 0.0
+learning_rate   = 1e-3
+weight_decay    = 1e-2
+normalization   = "l2"
+gaussian_noise  = 0
+use_batchnorm   = true
+activation      = "relu"
+scheduler       = "plateau"
+epochs          = 50
+patience        = 20
 
 [fusion.modality.video]
-# Video overfit catastrophically in the first run (tr_f1≈0.89 vs va_f1≈0.48).
-# The heavy regularisation (dropout=0.5, input_dropout=0.2, wd=0.1, dim=64)
-# over-corrected and dropped val F1 by ~0.05 vs the unregularised baseline.
-# New settings: moderate capacity (128-d head), lighter dropout, lower WD,
-# no input dropout — enough to prevent memorisation without starving the head.
-hidden_dims     = [128]
-dropout         = 0.3
+hidden_dims     = [256, 128]
+dropout         = 0.2
 input_dropout   = 0.0
-weight_decay    = 3e-2
-patience        = 10
+learning_rate   = 1e-3
+weight_decay    = 1e-2
+normalization   = "l2"
+gaussian_noise  = 0
+use_batchnorm   = true
+activation      = "relu"
+scheduler       = "plateau"
+epochs          = 50
+patience        = 20
 
 # ── Training defaults (apply to all per-modality heads unless overridden) ─────
 [training]

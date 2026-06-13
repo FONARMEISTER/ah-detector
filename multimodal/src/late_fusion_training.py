@@ -129,11 +129,15 @@ def plot_history(histories: Dict[str, dict], save_path: Path) -> None:
 
 class ModalityMLP(nn.Module):
     """
-    Simple Linear → GELU → Dropout (× len(hidden_dims)) → Linear classifier.
+    Configurable MLP classifier for a single modality embedding.
 
-    Operates on a single z-scored modality embedding vector.  Kept tiny so
-    that with ~1500 training samples we don't blow up the parameter budget
-    per modality.
+    Architecture (per hidden layer)::
+
+        [GaussianNoise] → Linear → [BatchNorm] → Activation → Dropout
+
+    Operates on a normalised modality embedding vector.  Kept tiny so that
+    with ~1500 training samples we don't blow up the parameter budget per
+    modality.
 
     Parameters
     ----------
@@ -142,6 +146,15 @@ class ModalityMLP(nn.Module):
         Useful for high-dim modalities (e.g. Swin's 768-d pooled output)
         where many feature dimensions are noisy and overfitting kicks in
         within 2-3 epochs.  Set to 0 to disable.
+    gaussian_noise : float
+        Std-dev of additive Gaussian noise injected at the input during
+        training (like Run.ipynb's ``GaussianNoise(0.025)``).  Set to 0 to
+        disable.  Only active in ``model.train()`` mode.
+    use_batchnorm : bool
+        If True, insert ``BatchNorm1d`` after each hidden Linear (before
+        activation), mirroring the Run.ipynb Keras architecture.
+    activation : str
+        ``"gelu"`` (default) or ``"relu"``.
     """
 
     def __init__(
@@ -151,20 +164,48 @@ class ModalityMLP(nn.Module):
         num_classes: int = 2,
         dropout: float = 0.3,
         input_dropout: float = 0.0,
+        gaussian_noise: float = 0.0,
+        use_batchnorm: bool = False,
+        activation: str = "gelu",
     ):
         super().__init__()
+        act_cls = nn.ReLU if activation.lower() == "relu" else nn.GELU
+
         layers: List[nn.Module] = []
+        # Optional Gaussian noise at the input (only active during training).
+        if gaussian_noise > 0:
+            layers.append(_GaussianNoise(gaussian_noise))
         if input_dropout > 0:
             layers.append(nn.Dropout(p=input_dropout))
         in_dim = input_dim
         for h in hidden_dims:
-            layers += [nn.Linear(in_dim, h), nn.GELU(), nn.Dropout(p=dropout)]
+            layers.append(nn.Linear(in_dim, h))
+            if use_batchnorm:
+                layers.append(nn.BatchNorm1d(h))
+            layers.append(act_cls())
+            layers.append(nn.Dropout(p=dropout))
             in_dim = h
         layers.append(nn.Linear(in_dim, num_classes))
         self.mlp = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.mlp(x)
+
+
+class _GaussianNoise(nn.Module):
+    """Additive Gaussian noise — active only during ``model.train()``."""
+
+    def __init__(self, std: float = 0.025):
+        super().__init__()
+        self.std = std
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.training and self.std > 0:
+            return x + torch.randn_like(x) * self.std
+        return x
+
+    def extra_repr(self) -> str:
+        return f"std={self.std}"
 
 
 # ── Per-modality hyperparameter resolution ────────────────────────────────────
@@ -189,14 +230,20 @@ def _resolve_modality_cfg(CFG: dict, modality: str) -> dict:
 
     # Stage 1: global defaults from existing config.
     resolved = {
-        "hidden_dims":    fcfg.get("modality_hidden_dims", fcfg.get("hidden_dims", [128])),
-        "dropout":        float(fcfg.get("modality_dropout", fcfg.get("dropout", 0.3))),
-        "input_dropout":  float(fcfg.get("modality_input_dropout", 0.0)),
+        "hidden_dims":     fcfg.get("modality_hidden_dims", fcfg.get("hidden_dims", [128])),
+        "dropout":         float(fcfg.get("modality_dropout", fcfg.get("dropout", 0.3))),
+        "input_dropout":   float(fcfg.get("modality_input_dropout", 0.0)),
         "label_smoothing": float(fcfg.get("label_smoothing", 0.1)),
-        "learning_rate":  float(tcfg["learning_rate"]),
-        "weight_decay":   float(tcfg["weight_decay"]),
-        "epochs":         int(tcfg["epochs"]),
-        "patience":       int(tcfg["early_stopping_patience"]),
+        "learning_rate":   float(tcfg["learning_rate"]),
+        "weight_decay":    float(tcfg["weight_decay"]),
+        "epochs":          int(tcfg["epochs"]),
+        "patience":        int(tcfg["early_stopping_patience"]),
+        # New keys (backward-compatible defaults match the old behaviour).
+        "normalization":   fcfg.get("normalization", "standard"),   # "standard" | "l2"
+        "gaussian_noise":  float(fcfg.get("gaussian_noise", 0.0)),
+        "use_batchnorm":   bool(fcfg.get("use_batchnorm", False)),
+        "activation":      fcfg.get("activation", "gelu"),          # "gelu" | "relu"
+        "scheduler":       tcfg.get("scheduler", "cosine"),         # "cosine" | "plateau"
     }
 
     # Stage 2: per-modality block under ``[fusion.modality.<mod>]``.
@@ -209,15 +256,18 @@ def _resolve_modality_cfg(CFG: dict, modality: str) -> dict:
         for key in (
             "hidden_dims", "dropout", "input_dropout", "label_smoothing",
             "learning_rate", "weight_decay", "epochs", "patience",
+            "normalization", "gaussian_noise", "use_batchnorm", "activation",
+            "scheduler",
         ):
             if key in mod_block:
                 resolved[key] = mod_block[key]
         # Normalise numeric types so TOML "1e-2" strings don't sneak through.
         for key in ("dropout", "input_dropout", "label_smoothing",
-                    "learning_rate", "weight_decay"):
+                    "learning_rate", "weight_decay", "gaussian_noise"):
             resolved[key] = float(resolved[key])
         for key in ("epochs", "patience"):
             resolved[key] = int(resolved[key])
+        resolved["use_batchnorm"] = bool(resolved["use_batchnorm"])
 
     return resolved
 
@@ -225,20 +275,45 @@ def _resolve_modality_cfg(CFG: dict, modality: str) -> dict:
 # ── Per-modality dataset wrapper ──────────────────────────────────────────────
 
 
+class _L2Normalizer:
+    """
+    Drop-in replacement for ``StandardScaler`` that applies per-sample L2
+    normalization: ``x / (||x||_2 + eps)``.
+
+    Matches the ``linalg_array`` lambda used in Run.ipynb.  ``fit()`` is a
+    no-op (L2 norm is stateless), but we keep the API so the rest of the
+    pipeline can treat it identically to ``StandardScaler``.
+    """
+
+    def fit(self, X: np.ndarray) -> "_L2Normalizer":
+        return self
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        norms = np.linalg.norm(X, axis=1, keepdims=True) + 1e-12
+        return (X / norms).astype(np.float32)
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        self.fit(X)
+        return self.transform(X)
+
+
 class _SingleModalityViewDataset(Dataset):
     """
     Wraps a single modality slice of a ``MultimodalCachedFusionDataset``.
 
-    Stores the pre-scaled tensor on CPU as a numpy array and randomly samples
-    a view at every ``__getitem__`` call when ``random_view=True``;
+    Stores the pre-normalised tensor on CPU as a numpy array and randomly
+    samples a view at every ``__getitem__`` call when ``random_view=True``;
     deterministic view 0 otherwise.
+
+    The ``scaler`` can be either a ``StandardScaler`` (z-score) or an
+    ``_L2Normalizer`` (per-sample L2 norm) — both expose ``.transform()``.
     """
 
     def __init__(
         self,
         emb_tensor: torch.Tensor,         # (N, K, dim)
         labels: List[int],
-        scaler: StandardScaler,
+        scaler,                            # StandardScaler | _L2Normalizer
         random_view: bool,
     ):
         super().__init__()
@@ -275,18 +350,19 @@ def train_modality_head(
     CFG: dict,
     weights_dir: Path,
     device: torch.device,
-) -> Tuple[nn.Module, StandardScaler, dict, np.ndarray, np.ndarray, np.ndarray]:
+) -> Tuple[nn.Module, object, dict, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Fit a StandardScaler on the train cache for ``modality``, train an MLP
-    head with early stopping on val macro-F1, and finally return per-sample
-    softmax probabilities for train/val/test (always using view 0).
+    Fit a normalizer (StandardScaler or L2) on the train cache for
+    ``modality``, train an MLP head with early stopping on val macro-F1,
+    and finally return per-sample softmax probabilities for train/val/test
+    (always using view 0).
 
     The probabilities are what the late-fusion combiner consumes.
 
     Returns
     -------
     best_model : nn.Module        — checkpoint restored to best val F1
-    scaler     : StandardScaler   — fitted on all train (N*K) views
+    scaler     : object           — fitted normalizer (StandardScaler or _L2Normalizer)
     history    : dict             — per-epoch curves for plotting
     p_train    : (N_train, 2)     — softmax probs on train view 0
     p_val      : (N_val, 2)
@@ -307,14 +383,24 @@ def train_modality_head(
     WD = float(mcfg["weight_decay"])
     EPOCHS = int(mcfg["epochs"])
     PATIENCE = int(mcfg["patience"])
+    NORM_TYPE = mcfg.get("normalization", "standard")
+    GAUSS_NOISE = float(mcfg.get("gaussian_noise", 0.0))
+    USE_BN = bool(mcfg.get("use_batchnorm", False))
+    ACTIVATION = mcfg.get("activation", "gelu")
+    SCHED_TYPE = mcfg.get("scheduler", "cosine")
 
     emb_train = getattr(train_ds, modality)            # (N, K, dim)
     emb_val = getattr(val_ds, modality)
     emb_test = getattr(test_ds, modality)
     input_dim = emb_train.shape[-1]
 
-    # Fit StandardScaler on ALL N*K train views (matches the early-fusion baseline).
-    scaler = StandardScaler()
+    # Choose normalizer: StandardScaler (z-score) or L2 (per-sample unit norm).
+    if NORM_TYPE == "l2":
+        scaler = _L2Normalizer()
+        print(f"[{modality}] Using L2 normalization (per-sample unit norm)")
+    else:
+        scaler = StandardScaler()
+        print(f"[{modality}] Using StandardScaler (z-score normalization)")
     scaler.fit(emb_train.reshape(-1, input_dim).numpy().astype(np.float32))
 
     train_td = _SingleModalityViewDataset(
@@ -347,13 +433,19 @@ def train_modality_head(
     model = ModalityMLP(
         input_dim=input_dim, hidden_dims=HIDDEN,
         num_classes=2, dropout=DROPOUT, input_dropout=INPUT_DROPOUT,
+        gaussian_noise=GAUSS_NOISE, use_batchnorm=USE_BN, activation=ACTIVATION,
     ).to(device)
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(
         f"\n[{modality}] input_dim={input_dim}  hidden_dims={HIDDEN}  "
         f"dropout={DROPOUT}  input_dropout={INPUT_DROPOUT}  "
-        f"lr={LR:.2e}  weight_decay={WD}  epochs={EPOCHS}  patience={PATIENCE}"
+        f"gaussian_noise={GAUSS_NOISE}  batchnorm={USE_BN}  activation={ACTIVATION}  "
+        f"normalization={NORM_TYPE}"
+    )
+    print(
+        f"[{modality}] lr={LR:.2e}  weight_decay={WD}  epochs={EPOCHS}  "
+        f"patience={PATIENCE}  scheduler={SCHED_TYPE}"
     )
     print(f"[{modality}] Architecture:\n{model}")
     print(f"[{modality}] Trainable params: {trainable:,}")
@@ -362,9 +454,16 @@ def train_modality_head(
     criterion = nn.CrossEntropyLoss(label_smoothing=LABEL_SMOOTH)
     criterion_eval = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=EPOCHS, eta_min=LR * 1e-2
-    )
+
+    # Scheduler: cosine (default) or ReduceLROnPlateau (like Run.ipynb).
+    if SCHED_TYPE == "plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode="min", factor=0.5, patience=3, min_lr=1e-6,
+        )
+    else:
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=EPOCHS, eta_min=LR * 1e-2
+        )
 
     best_f1 = -1.0
     prev_f1 = -1.0
@@ -404,7 +503,13 @@ def train_modality_head(
                 va_loss += criterion_eval(logits, y).item() * len(y)
                 va_preds.extend(logits.argmax(1).cpu().tolist())
                 va_labels_ep.extend(y.cpu().tolist())
-        scheduler.step()
+
+        # Step the scheduler — ReduceLROnPlateau needs the val loss metric.
+        avg_va_loss = va_loss / max(len(va_labels_ep), 1)
+        if SCHED_TYPE == "plateau":
+            scheduler.step(avg_va_loss)
+        else:
+            scheduler.step()
 
         tr_f1 = f1_score(tr_labels_ep, tr_preds, average="macro", zero_division=0)
         va_f1 = f1_score(va_labels_ep, va_preds, average="macro", zero_division=0)
@@ -436,6 +541,11 @@ def train_modality_head(
                     "dropout": DROPOUT,
                     "input_dropout": INPUT_DROPOUT,
                     "modality": modality,
+                    # New keys for architecture reconstruction at inference.
+                    "gaussian_noise": GAUSS_NOISE,
+                    "use_batchnorm": USE_BN,
+                    "activation": ACTIVATION,
+                    "normalization": NORM_TYPE,
                 },
                 ckpt_path,
             )

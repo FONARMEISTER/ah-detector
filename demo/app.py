@@ -280,8 +280,23 @@ def extract_video_embedding(
 
 # ── Step 5: Late-fusion classification ──────────────────────────────────────
 
+class _GaussianNoiseInfer(torch.nn.Module):
+    """No-op at eval time — matches training's _GaussianNoise."""
+
+    def __init__(self, std: float = 0.025):
+        super().__init__()
+        self.std = std
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x  # always eval mode in demo
+
+
 def load_modality_mlp(ckpt_path: Path, device: torch.device):
-    """Load a trained ModalityMLP from a late-fusion checkpoint."""
+    """Load a trained ModalityMLP from a late-fusion checkpoint.
+
+    Handles both old checkpoints (GELU-only, no BN/noise) and new ones
+    (configurable activation, GaussianNoise, BatchNorm).
+    """
     import torch.nn as nn
 
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
@@ -289,14 +304,25 @@ def load_modality_mlp(ckpt_path: Path, device: torch.device):
     hidden_dims = ckpt["hidden_dims"]
     dropout = ckpt.get("dropout", 0.3)
     input_dropout = ckpt.get("input_dropout", 0.0)
+    gaussian_noise = ckpt.get("gaussian_noise", 0.0)
+    use_batchnorm = ckpt.get("use_batchnorm", False)
+    activation = ckpt.get("activation", "gelu")
 
-    # Rebuild ModalityMLP architecture.
+    act_cls = nn.ReLU if activation == "relu" else nn.GELU
+
+    # Rebuild ModalityMLP architecture (must match training exactly).
     layers: list[nn.Module] = []
+    if gaussian_noise > 0:
+        layers.append(_GaussianNoiseInfer(gaussian_noise))
     if input_dropout > 0:
         layers.append(nn.Dropout(p=input_dropout))
     in_dim = input_dim
     for h in hidden_dims:
-        layers += [nn.Linear(in_dim, h), nn.GELU(), nn.Dropout(p=dropout)]
+        layers.append(nn.Linear(in_dim, h))
+        if use_batchnorm:
+            layers.append(nn.BatchNorm1d(h))
+        layers.append(act_cls())
+        layers.append(nn.Dropout(p=dropout))
         in_dim = h
     layers.append(nn.Linear(in_dim, 2))
     model = nn.Sequential(*layers)
