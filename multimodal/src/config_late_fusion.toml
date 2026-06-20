@@ -34,6 +34,14 @@ active_modalities = ["text", "audio", "video"]
 # produced by the stage-1 extractors above.
 cache_dir = "multimodal/cache"
 
+# Which text backbone's cache to use for fusion.  Must match a backbone
+# previously extracted via extract_text.py (i.e. the file
+# ``multimodal/cache/text_<backbone>_embs_<split>.pt`` must exist).
+# "distilbert"                → uses text_distilbert_embs_<split>.pt
+# "distilroberta_emotional"   → uses text_distilroberta_emotional_embs_<split>.pt
+# Omit or set to null to use the legacy unsuffixed text_embs_<split>.pt.
+text_backbone = "distilroberta_emotional"
+
 # Which video backbone's cache to use for fusion.  Must match a backbone
 # previously extracted via extract_video.py (i.e. the file
 # ``multimodal/cache/video_<backbone>_embs_<split>.pt`` must exist).

@@ -29,15 +29,32 @@
 num_classes = 2
 class_names = ["No A-H", "With A-H"]
 
-# ── Text backbone (DistilRoBERTa-Emotional) ───────────────────────────────────
-# Same architecture as `distilroberta-base` (6-layer RoBERTa, 82 M params)
-# but pretrained on 7-way emotion classification.  We discard the emotion
-# head and fine-tune on BAH A/H.  Rationale: A/H correlates with affect
-# (anxiety, hesitation, frustration), so an emotion-tuned encoder mirrors
-# the audio side's wav2vec2-emotional choice.
+# ── Text backbone ─────────────────────────────────────────────────────────────
+# ``backbone`` selects which encoder (and therefore which fine-tuned weights /
+# cache file) we read.  Both backbones expose a 768-d CLS embedding, so
+# downstream fusion code is unaffected by the choice — only the cache
+# filename changes (``text_<backbone>_embs_<split>.pt``).
+#
+# Available backbones:
+#   "distilbert"                — DistilBERT-base-uncased (6 layers, 66 M params)
+#   "distilroberta_emotional"   — DistilRoBERTa pretrained on 7-way emotion
+#                                 classification (j-hartmann/..., 6 layers, 82 M).
+#                                 Rationale: A/H correlates with affect (anxiety,
+#                                 hesitation, frustration), so an emotion-tuned
+#                                 encoder mirrors the audio side's wav2vec2-emotional.
 [text]
-model_name   = "j-hartmann/emotion-english-distilroberta-base"
+backbone     = "distilroberta_emotional"   # "distilbert" | "distilroberta_emotional"
 max_length   = 128
+
+# Per-backbone overrides.  The active block is the one whose name matches
+# ``backbone``.  Caches live at ``text_<backbone>_embs_<split>.pt`` so
+# distilbert and distilroberta_emotional embeddings can coexist on disk.
+[text.distilbert]
+model_name   = "distilbert-base-uncased"
+weights_path = "text/weights/distilbert_bah_best.pth"
+
+[text.distilroberta_emotional]
+model_name   = "j-hartmann/emotion-english-distilroberta-base"
 weights_path = "text/weights/distilroberta_emotional_bah_best.pth"
 
 # ── Audio backbone ────────────────────────────────────────────────────────────
@@ -172,10 +189,15 @@ pca_whiten = false
 
 # Hidden layer sizes.  Each hidden layer is (Linear → GELU → Dropout).
 # Examples:
-#   []         → plain logistic regression  : Linear(1792 → 2)
-#   [128]      → 1-hidden-layer MLP         : 1792 → 128 → 2   (default)
-#   [256, 64]  → 2-hidden-layer MLP         : 1792 → 256 → 64 → 2
-hidden_dims = [128]
+#   []         → plain logistic regression  : Linear(fused_dim → 2)
+#   [128]      → 1-hidden-layer MLP         : fused_dim → 128 → 2
+#   [256, 64]  → 2-hidden-layer MLP         : fused_dim → 256 → 64 → 2
+# With pca_components=512 + 3 modalities (text=768, audio=256, video=768)
+# and hidden_dims=[], the effective architecture is Linear(512 → 2) after
+# PCA, or Linear(1792 → 2) without PCA.
+# Set to [] for a simple 1-layer classifier (recommended for text-only or
+# when PCA already reduces dimensionality sufficiently).
+hidden_dims = []
 
 # Dropout probability applied after every hidden layer.
 dropout = 0.3

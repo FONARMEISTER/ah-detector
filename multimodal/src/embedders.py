@@ -87,6 +87,106 @@ class TextEmbedder:
             return out.last_hidden_state[:, 0, :]  # (N, 768)
 
 
+class DistilRoBERTaEmotionalEmbedder:
+    """
+    Wraps a frozen DistilRoBERTa-Emotional model and extracts the CLS token
+    embedding.
+
+    Key remap
+    ---------
+    The checkpoint saved by ``text_training.py distilroberta_emotional`` is a
+    ``RobertaForSequenceClassification`` state dict whose encoder keys are
+    prefixed with ``roberta.`` (e.g.
+    ``roberta.embeddings.word_embeddings.weight``).  ``RobertaModel`` expects
+    the same keys *without* that prefix.  We remap before loading so the
+    fine-tuned encoder weights are actually used.
+
+    Output dim: ``hidden_size`` = 768.
+    """
+
+    def __init__(self, model_name: str, weights_path, device, max_length: int = 128):
+        from transformers import RobertaModel, AutoTokenizer
+
+        self.device = device
+        self.max_length = max_length
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = RobertaModel.from_pretrained(model_name).to(device)
+
+        if weights_path is not None and Path(weights_path).exists():
+            state = torch.load(weights_path, map_location=device, weights_only=True)
+            remapped = {}
+            skipped = []
+            for k, v in state.items():
+                if k.startswith("roberta."):
+                    remapped[k[len("roberta."):]] = v
+                else:
+                    skipped.append(k)
+            missing, unexpected = self.model.load_state_dict(remapped, strict=False)
+            print(
+                f"[DistilRoBERTaEmotionalEmbedder] Loaded {len(remapped)}/{len(state)} "
+                f"keys from {weights_path}  (skipped head: {skipped}  "
+                f"missing={missing}  unexpected={unexpected})"
+            )
+        else:
+            print(
+                f"[DistilRoBERTaEmotionalEmbedder] Weights not found at "
+                f"{weights_path} — using pretrained HuggingFace weights"
+            )
+
+        self.model.eval()
+        for p in self.model.parameters():
+            p.requires_grad = False
+
+    @property
+    def dim(self) -> int:
+        return self.model.config.hidden_size  # 768
+
+    def embed(self, texts: list) -> torch.Tensor:
+        """Return (N, 768) CLS embeddings for a list of strings."""
+        with torch.no_grad():
+            enc = self.tokenizer(
+                texts,
+                max_length=self.max_length,
+                padding="max_length",
+                truncation=True,
+                return_tensors="pt",
+            )
+            enc = {k: v.to(self.device) for k, v in enc.items()}
+            out = self.model(**enc)
+            return out.last_hidden_state[:, 0, :]  # (N, 768)
+
+
+# ── Text factory ──────────────────────────────────────────────────────────────
+
+def build_text_embedder(backbone: str, model_name: str, weights_path, device,
+                        max_length: int = 128):
+    """
+    Construct the correct text embedder for the requested backbone.
+
+    Parameters
+    ----------
+    backbone : str
+        ``"distilbert"``                → :class:`TextEmbedder`
+        ``"distilroberta_emotional"``   → :class:`DistilRoBERTaEmotionalEmbedder`
+    """
+    b = (backbone or "distilbert").lower()
+    kwargs = dict(
+        model_name=model_name,
+        weights_path=weights_path,
+        device=device,
+        max_length=max_length,
+    )
+    if b == "distilbert":
+        return TextEmbedder(**kwargs)
+    if b == "distilroberta_emotional":
+        return DistilRoBERTaEmotionalEmbedder(**kwargs)
+    raise ValueError(
+        f"Unknown text backbone {backbone!r}.  "
+        f"Expected 'distilbert' or 'distilroberta_emotional'."
+    )
+
+
 # ── Audio ─────────────────────────────────────────────────────────────────────
 
 class AudioEmbedder:

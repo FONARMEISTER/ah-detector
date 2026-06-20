@@ -1571,6 +1571,7 @@ def get_cached_multimodal_splits(
     expected_fingerprint: Optional[dict] = None,
     video_backbone: Optional[str] = None,
     audio_backbone: Optional[str] = None,
+    text_backbone: Optional[str] = None,
 ) -> Dict[str, "MultimodalCachedFusionDataset"]:
     """
     Convenience constructor: build cached datasets for train/val/test from
@@ -1601,6 +1602,13 @@ def get_cached_multimodal_splits(
         ``extract_audio.py`` with the corresponding backbone selector).
         If None, falls back to the legacy unsuffixed
         ``audio_embs_<split>.pt`` filename.
+    text_backbone : str or None
+        If set (e.g. ``"distilbert"`` or ``"distilroberta_emotional"``),
+        loads the backbone-tagged text cache file
+        ``text_<backbone>_embs_<split>.pt`` (produced by
+        ``extract_text.py`` with the corresponding backbone selector).
+        If None, falls back to the legacy unsuffixed
+        ``text_embs_<split>.pt`` filename.
     """
     cache_dir = Path(cache_dir)
 
@@ -1613,8 +1621,12 @@ def get_cached_multimodal_splits(
             apath = cache_dir / f"audio_{audio_backbone}_embs_{split}.pt"
         else:
             apath = cache_dir / f"audio_embs_{split}.pt"
+        if text_backbone:
+            tpath = cache_dir / f"text_{text_backbone}_embs_{split}.pt"
+        else:
+            tpath = cache_dir / f"text_embs_{split}.pt"
         return {
-            "text_cache_path":  cache_dir / f"text_embs_{split}.pt",
+            "text_cache_path":  tpath,
             "audio_cache_path": apath,
             "video_cache_path": vpath,
         }

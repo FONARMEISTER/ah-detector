@@ -934,6 +934,7 @@ def main():
     CACHE_DIR = Path(os.environ.get("CACHE_DIR", str(REPO_ROOT / _cache_dir_raw)))
     VIDEO_BACKBONE = CFG["fusion"].get("video_backbone", "swin")
     AUDIO_BACKBONE = CFG["fusion"].get("audio_backbone", "wav2vec2emotional")
+    TEXT_BACKBONE = CFG["fusion"].get("text_backbone", None)
 
     SEED = int(CFG["training"]["seed"])
     torch.manual_seed(SEED)
@@ -956,6 +957,7 @@ def main():
     print("=" * 70)
     print(f"Device              : {DEVICE}")
     print(f"Cache dir           : {CACHE_DIR}")
+    print(f"Text backbone       : {TEXT_BACKBONE or '(legacy)'}")
     print(f"Video backbone      : {VIDEO_BACKBONE}")
     print(f"Audio backbone      : {AUDIO_BACKBONE}")
     print(f"Active modalities   : {ACTIVE_MODS}")
@@ -973,6 +975,7 @@ def main():
         expected_fingerprint=None,
         video_backbone=VIDEO_BACKBONE,
         audio_backbone=AUDIO_BACKBONE,
+        text_backbone=TEXT_BACKBONE,
     )
     train_ds, val_ds, test_ds = splits["train"], splits["val"], splits["test"]
 
@@ -1000,6 +1003,13 @@ def main():
     p_test: Dict[str, np.ndarray] = {}
 
     for mod in ACTIVE_MODS:
+        # Reset random seed before each modality head so that each MLP
+        # starts from the same deterministic state regardless of order.
+        torch.manual_seed(SEED)
+        np.random.seed(SEED)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(SEED)
+
         print("\n" + "=" * 70)
         print(f"Training modality head: {mod}")
         print("=" * 70)

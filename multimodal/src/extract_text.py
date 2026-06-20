@@ -110,7 +110,7 @@ def _extract_one_split(
 
 
 def main():
-    from embedders import TextEmbedder
+    from embedders import build_text_embedder
 
     CFG = toml.load("config.toml")
     aug_cfg = CFG.get("augmentation", {})
@@ -124,8 +124,23 @@ def main():
 
     DEVICE = resolve_device()
     FORCE = bool(int(os.environ.get("FORCE_EXTRACT", "0")))
+
+    # ── Resolve text backbone config ──────────────────────────────────────────
+    TEXT_BACKBONE = CFG["text"].get("backbone", "distilbert")
+    TEXT_MAX_LENGTH = CFG["text"]["max_length"]
+
+    # Support both old flat config (model_name/weights_path at [text] level)
+    # and new per-backbone config ([text.<backbone>] sub-tables).
+    backbone_cfg = CFG["text"].get(TEXT_BACKBONE, {})
+    TEXT_MODEL_NAME = backbone_cfg.get(
+        "model_name", CFG["text"].get("model_name", "distilbert-base-uncased")
+    )
+    TEXT_WEIGHTS_PATH = backbone_cfg.get(
+        "weights_path", CFG["text"].get("weights_path", "")
+    )
+
     WEIGHTS = Path(
-        os.environ.get("TEXT_WEIGHTS", str(REPO_ROOT / CFG["text"]["weights_path"]))
+        os.environ.get("TEXT_WEIGHTS", str(REPO_ROOT / TEXT_WEIGHTS_PATH))
     )
 
     print("=" * 70)
@@ -133,6 +148,7 @@ def main():
     print("=" * 70)
     print(f"Device          : {DEVICE}")
     print(f"Cache dir       : {CACHE_DIR}")
+    print(f"Text backbone   : {TEXT_BACKBONE}")
     print(f"K train         : {K_TRAIN}")
     print(f"K eval          : {K_EVAL}")
     print(f"Augment train   : {AUGMENT}")
@@ -140,7 +156,7 @@ def main():
     print(f"Force re-extract: {FORCE}")
     print(f"Batch size      : {BATCH}")
     print(f"Seed            : {SEED}")
-    print(f"Model           : {CFG['text']['model_name']}")
+    print(f"Model           : {TEXT_MODEL_NAME}")
     print(f"Weights         : {WEIGHTS}")
     print("=" * 70)
 
@@ -151,17 +167,18 @@ def main():
         do_aug = AUGMENT and (split == "train")
         return {
             "modality": "text",
+            "backbone": TEXT_BACKBONE,
             "num_views": K,
             "augment": do_aug,
             "augmentation_cfg": aug_cfg if do_aug else None,
-            "model_name": CFG["text"]["model_name"],
-            "max_length": CFG["text"]["max_length"],
+            "model_name": TEXT_MODEL_NAME,
+            "max_length": TEXT_MAX_LENGTH,
             "seed": SEED,
         }
 
     splits_to_do = []
     for split in SPLITS:
-        cache_path = cache_path_for(CACHE_DIR, "text", split)
+        cache_path = cache_path_for(CACHE_DIR, "text", split, variant=TEXT_BACKBONE)
         if check_existing_cache(cache_path, fp, expected_cfg(split), FORCE):
             print(
                 f"[{split:5s}] Cache OK at {cache_path} — skipping (use "
@@ -175,16 +192,17 @@ def main():
         return
 
     print("\n[Backbone] Loading text encoder ...")
-    text_embedder = TextEmbedder(
-        model_name=CFG["text"]["model_name"],
+    text_embedder = build_text_embedder(
+        backbone=TEXT_BACKBONE,
+        model_name=TEXT_MODEL_NAME,
         weights_path=WEIGHTS,
         device=DEVICE,
-        max_length=CFG["text"]["max_length"],
+        max_length=TEXT_MAX_LENGTH,
     )
 
     for split in splits_to_do:
         K = K_TRAIN if split == "train" else K_EVAL
-        cache_path = cache_path_for(CACHE_DIR, "text", split)
+        cache_path = cache_path_for(CACHE_DIR, "text", split, variant=TEXT_BACKBONE)
         print(f"\n{'=' * 70}\n[{split:5s}] Text → {cache_path}\n{'=' * 70}")
         t0 = time.time()
         result = _extract_one_split(

@@ -916,12 +916,20 @@ def main():
     MOD_DIMS = [ALL_MOD_DIMS[m] for m in ACTIVE_MODS]
     INPUT_DIM = sum(MOD_DIMS)
 
+    # ── Backbone selectors (for cache filename resolution) ─────────────────────
+    TEXT_BACKBONE = CFG.get("text", {}).get("backbone", None)
+    AUDIO_BACKBONE = CFG.get("audio", {}).get("backbone", None)
+    VIDEO_BACKBONE = CFG.get("video", {}).get("backbone", None)
+
     print("=" * 70)
     print("Multimodal Fusion-Head Training — cache-driven")
     print("=" * 70)
     print(f"Classifier          : {CLASSIFIER}")
     print(f"Cache dir           : {CACHE_DIR}")
     print(f"Active modalities   : {ACTIVE_MODS}")
+    print(f"Text backbone       : {TEXT_BACKBONE or '(legacy)'}")
+    print(f"Audio backbone      : {AUDIO_BACKBONE or '(legacy)'}")
+    print(f"Video backbone      : {VIDEO_BACKBONE or '(legacy)'}")
     print(f"Fusion input dim    : {' + '.join(str(d) for d in MOD_DIMS)} = {INPUT_DIM}")
     print(f"Seed                : {SEED}")
     print(f"Fusion weights path : {FUSION_WEIGHTS}")
@@ -935,6 +943,9 @@ def main():
         cache_dir=CACHE_DIR,
         train_random_view=(CLASSIFIER == "mlp"),
         expected_fingerprint=None,
+        text_backbone=TEXT_BACKBONE,
+        audio_backbone=AUDIO_BACKBONE,
+        video_backbone=VIDEO_BACKBONE,
     )
     train_ds, val_ds, test_ds = splits["train"], splits["val"], splits["test"]
 
