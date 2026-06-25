@@ -2,6 +2,8 @@
 
 Binary classification of Behavioral Ambivalence/Hesitancy (A/H) from video recordings, using text, audio, and video modalities fused through a late-fusion pipeline.
 
+![Whole pipeline schema](schema.jpg)
+
 ## Dataset
 
 The project uses the BAH (Behavioral Ambivalence/Hesitancy) dataset containing approximately 1500 short video recordings of people.  Each video is labelled with one of two classes:
