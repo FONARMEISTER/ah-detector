@@ -6,7 +6,7 @@
 #SBATCH --output=logs_%j.out
 #SBATCH --error=logs_%j.err
 
-source /home3/iasarantsev/bin/activate
+source /home3/iasarantsev/environment/bin/activate
 
 pip install -r /home3/iasarantsev/requirements.txt -q
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=iasarantsev_vit
+#SBATCH --job-name=iasarantsev_late_fusion
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=8
@@ -10,5 +10,4 @@ source /home3/iasarantsev/environment/bin/activate
 
 pip install -r /home3/iasarantsev/requirements.txt -q
 
-python3 -u ./extract_embedding.py video
-
+python3 -u ./late_fusion_training.py

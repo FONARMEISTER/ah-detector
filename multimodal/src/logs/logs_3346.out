@@ -1,0 +1,66 @@
+[Orchestrator] Running modalities: ['audio']
+
+==============================================================================
+[Orchestrator] Modality: AUDIO
+==============================================================================
+
+======================================================================
+Audio Embedding Extraction — BAH A/H Multimodal  (backbone=hubert)
+======================================================================
+Device          : cuda
+Cache dir       : /home3/iasarantsev/multimodal/cache
+Backbone        : hubert
+K train         : 5
+K eval          : 1
+Augment train   : False
+Splits          : ['train', 'val', 'test']
+Force re-extract: False
+Batch size      : 8
+Seed            : 42
+Model           : superb/hubert-large-superb-er
+Weights         : /home3/iasarantsev/audio/weights/hubert_bah_best.pth
+======================================================================
+
+[Backbone] Loading hubert audio encoder ...
+[HuBERTEmbedder] Loaded 427/427 keys from /home3/iasarantsev/audio/weights/hubert_bah_best.pth  (missing=0, unexpected=0)
+
+======================================================================
+[train] Audio (hubert) → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_train.pt
+======================================================================
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+  [Split train] 778 audio samples  |  K=5  |  augment=False
+  [Split train] Audio view 1/5  [clean]
+  [Split train] Audio view 2/5  [clean]
+  [Split train] Audio view 3/5  [clean]
+  [Split train] Audio view 4/5  [clean]
+  [Split train] Audio view 5/5  [clean]
+[train] Done in 6.2 min  embeddings=(778, 5, 256)
+[train] Saved → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_train.pt
+
+======================================================================
+[val  ] Audio (hubert) → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_val.pt
+======================================================================
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+  [Split val] 124 audio samples  |  K=1  |  augment=False
+  [Split val] Audio view 1/1  [clean]
+[val  ] Done in 0.2 min  embeddings=(124, 1, 256)
+[val  ] Saved → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_val.pt
+
+======================================================================
+[test ] Audio (hubert) → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_test.pt
+======================================================================
+AudioDataset [train]: 778 / 778 samples loaded (sr=16000, max=30.0s)
+AudioDataset [val]: 124 / 124 samples loaded (sr=16000, max=30.0s)
+AudioDataset [test]: 525 / 525 samples loaded (sr=16000, max=30.0s)
+  [Split test] 525 audio samples  |  K=1  |  augment=False
+  [Split test] Audio view 1/1  [clean]
+[test ] Done in 0.9 min  embeddings=(525, 1, 256)
+[test ] Saved → /home3/iasarantsev/multimodal/cache/audio_hubert_embs_test.pt
+
+All requested audio splits processed (backbone=hubert).
+
+[Orchestrator] All requested modalities done in 7.9 min

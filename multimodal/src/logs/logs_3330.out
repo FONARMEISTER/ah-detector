@@ -1,0 +1,76 @@
+[Orchestrator] Running modalities: ['video']
+
+==============================================================================
+[Orchestrator] Modality: VIDEO
+==============================================================================
+
+======================================================================
+Video Embedding Extraction — BAH A/H Multimodal  (backbone=videomae)
+======================================================================
+Device          : cuda
+Cache dir       : /home3/iasarantsev/multimodal/cache
+Backbone        : videomae
+K train         : 5
+K eval          : 1
+Augment train   : True
+Splits          : ['train', 'val', 'test']
+Force re-extract: False
+Batch size      : 8
+Seed            : 42
+Model           : MCG-NJU/videomae-base
+Weights         : /home3/iasarantsev/video/weights/videomae_bah_best.pth
+Clip len/stride : 16/8
+======================================================================
+
+[Backbone] Loading videomae video encoder ...
+[VideoMAEEmbedder] Loaded 186/186 keys from /home3/iasarantsev/video/weights/videomae_bah_best.pth  (missing=0, unexpected=0)
+
+======================================================================
+[train] Video (videomae) → /home3/iasarantsev/multimodal/cache/video_videomae_embs_train.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 62,994 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 9,990 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 42,025 clips (clip_len=16, stride=8)
+  [Split train] 778 videos  |  K=5  |  augment=True  |  clips=62,994  batch=8  workers=4
+  [Split train] Video view 1/5  [clean]
+  [Split train] Video view 2/5  [aug]
+  [Split train] Video view 3/5  [aug]
+  [Split train] Video view 4/5  [aug]
+  [Split train] Video view 5/5  [aug]
+[train] Done in 267.8 min  embeddings=(778, 5, 768)
+[train] Saved → /home3/iasarantsev/multimodal/cache/video_videomae_embs_train.pt
+
+======================================================================
+[val  ] Video (videomae) → /home3/iasarantsev/multimodal/cache/video_videomae_embs_val.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 62,994 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 9,990 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 42,025 clips (clip_len=16, stride=8)
+  [Split val] 124 videos  |  K=1  |  augment=False  |  clips=9,990  batch=8  workers=4
+  [Split val] Video view 1/1  [clean]
+[val  ] Done in 3.2 min  embeddings=(124, 1, 768)
+[val  ] Saved → /home3/iasarantsev/multimodal/cache/video_videomae_embs_val.pt
+
+======================================================================
+[test ] Video (videomae) → /home3/iasarantsev/multimodal/cache/video_videomae_embs_test.pt
+======================================================================
+/home3/iasarantsev/data/split-frames/train.txt
+SegmentedVideoClipDataset [train]: 62,994 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/val.txt
+SegmentedVideoClipDataset [val]: 9,990 clips (clip_len=16, stride=8)
+/home3/iasarantsev/data/split-frames/test.txt
+SegmentedVideoClipDataset [test]: 42,025 clips (clip_len=16, stride=8)
+  [Split test] 525 videos  |  K=1  |  augment=False  |  clips=42,025  batch=8  workers=4
+  [Split test] Video view 1/1  [clean]
+[test ] Done in 13.8 min  embeddings=(525, 1, 768)
+[test ] Saved → /home3/iasarantsev/multimodal/cache/video_videomae_embs_test.pt
+
+All requested video splits processed (backbone=videomae).
+
+[Orchestrator] All requested modalities done in 284.9 min

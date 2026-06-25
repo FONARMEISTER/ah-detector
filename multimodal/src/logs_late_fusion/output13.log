@@ -1,0 +1,439 @@
+======================================================================
+Multimodal Late-Fusion Training — cache-driven
+======================================================================
+Device              : cpu
+Cache dir           : /home3/iasarantsev/multimodal/cache
+Video backbone      : videomae
+Audio backbone      : wav2vec2emotional
+Active modalities   : ['text', 'audio', 'video']
+Seed                : 42
+Weights dir         : /home3/iasarantsev/multimodal/weights
+======================================================================
+
+[Cache] Loading multi-view embedding cache ...
+[CachedFusionDataset] N=778  K_t=3  K_a=3  K_v=5  random_view=True
+[CachedFusionDataset] N=124  K_t=1  K_a=1  K_v=1  random_view=False
+[CachedFusionDataset] N=525  K_t=1  K_a=1  K_v=1  random_view=False
+  [train]    778 videos  |  No A-H: 393  With A-H: 385  (49.5% positive)  |  K_t=3 K_a=3 K_v=5
+  [val  ]    124 videos  |  No A-H: 49  With A-H: 75  (60.5% positive)  |  K_t=1 K_a=1 K_v=1
+  [test ]    525 videos  |  No A-H: 207  With A-H: 318  (60.6% positive)  |  K_t=1 K_a=1 K_v=1
+
+======================================================================
+Training modality head: text
+======================================================================
+[text] Using StandardScaler (z-score normalization)
+
+[text] input_dim=768  hidden_dims=[128]  dropout=0.3  input_dropout=0.0  gaussian_noise=0.0  batchnorm=False  activation=gelu  normalization=standard
+[text] lr=5.00e-05  weight_decay=0.05  epochs=50  patience=5  scheduler=cosine
+[text] Architecture:
+ModalityMLP(
+  (mlp): Sequential(
+    (0): Linear(in_features=768, out_features=128, bias=True)
+    (1): GELU(approximate='none')
+    (2): Dropout(p=0.3, inplace=False)
+    (3): Linear(in_features=128, out_features=2, bias=True)
+  )
+)
+[text] Trainable params: 98,690
+[text] Class counts — No A-H: 393  With A-H: 385
+
+[text] Training MLP head ...
+[text] Epoch   1/50  tr_loss=0.6293  tr_f1=0.6688  va_loss=0.6657  va_f1=0.5932  va_acc=0.6048  lr=5.00e-05
+  ✓ New best val F1=0.5932 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch   2/50  tr_loss=0.6163  tr_f1=0.6782  va_loss=0.6440  va_f1=0.5990  va_acc=0.6210  lr=4.98e-05
+  ✓ New best val F1=0.5990 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch   3/50  tr_loss=0.5965  tr_f1=0.6874  va_loss=0.6178  va_f1=0.6268  va_acc=0.6532  lr=4.96e-05
+  ✓ New best val F1=0.6268 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch   4/50  tr_loss=0.5574  tr_f1=0.7330  va_loss=0.6288  va_f1=0.6314  va_acc=0.6452  lr=4.92e-05
+  ✓ New best val F1=0.6314 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch   5/50  tr_loss=0.5839  tr_f1=0.7262  va_loss=0.6336  va_f1=0.6170  va_acc=0.6290  lr=4.88e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch   6/50  tr_loss=0.5509  tr_f1=0.7480  va_loss=0.6427  va_f1=0.6026  va_acc=0.6129  lr=4.83e-05
+  ✗ No improvement vs prev epoch (2/5)
+[text] Epoch   7/50  tr_loss=0.5552  tr_f1=0.7481  va_loss=0.6417  va_f1=0.6301  va_acc=0.6371  lr=4.76e-05
+[text] Epoch   8/50  tr_loss=0.5597  tr_f1=0.7236  va_loss=0.6198  va_f1=0.6314  va_acc=0.6452  lr=4.69e-05
+[text] Epoch   9/50  tr_loss=0.5266  tr_f1=0.7722  va_loss=0.6420  va_f1=0.6406  va_acc=0.6452  lr=4.61e-05
+  ✓ New best val F1=0.6406 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch  10/50  tr_loss=0.5418  tr_f1=0.7524  va_loss=0.6309  va_f1=0.6375  va_acc=0.6452  lr=4.53e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  11/50  tr_loss=0.5103  tr_f1=0.7832  va_loss=0.6378  va_f1=0.6210  va_acc=0.6290  lr=4.43e-05
+  ✗ No improvement vs prev epoch (2/5)
+[text] Epoch  12/50  tr_loss=0.5261  tr_f1=0.7673  va_loss=0.6392  va_f1=0.6392  va_acc=0.6452  lr=4.33e-05
+[text] Epoch  13/50  tr_loss=0.5335  tr_f1=0.7543  va_loss=0.6345  va_f1=0.6392  va_acc=0.6452  lr=4.22e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  14/50  tr_loss=0.5405  tr_f1=0.7514  va_loss=0.6270  va_f1=0.6392  va_acc=0.6452  lr=4.10e-05
+  ✗ No improvement vs prev epoch (2/5)
+[text] Epoch  15/50  tr_loss=0.5170  tr_f1=0.7711  va_loss=0.6461  va_f1=0.6481  va_acc=0.6532  lr=3.98e-05
+  ✓ New best val F1=0.6481 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch  16/50  tr_loss=0.5204  tr_f1=0.7840  va_loss=0.6539  va_f1=0.6418  va_acc=0.6452  lr=3.85e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  17/50  tr_loss=0.5146  tr_f1=0.7711  va_loss=0.6347  va_f1=0.6540  va_acc=0.6613  lr=3.72e-05
+  ✓ New best val F1=0.6540 — saved /home3/iasarantsev/multimodal/weights/late_fusion_text_best.pth
+[text] Epoch  18/50  tr_loss=0.5566  tr_f1=0.7325  va_loss=0.6459  va_f1=0.6180  va_acc=0.6210  lr=3.58e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  19/50  tr_loss=0.4899  tr_f1=0.8084  va_loss=0.6426  va_f1=0.6481  va_acc=0.6532  lr=3.44e-05
+[text] Epoch  20/50  tr_loss=0.5223  tr_f1=0.7686  va_loss=0.6263  va_f1=0.6357  va_acc=0.6452  lr=3.29e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  21/50  tr_loss=0.5067  tr_f1=0.7826  va_loss=0.6339  va_f1=0.6392  va_acc=0.6452  lr=3.14e-05
+[text] Epoch  22/50  tr_loss=0.4986  tr_f1=0.7840  va_loss=0.6361  va_f1=0.6137  va_acc=0.6210  lr=2.99e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  23/50  tr_loss=0.5042  tr_f1=0.7852  va_loss=0.6377  va_f1=0.6137  va_acc=0.6210  lr=2.84e-05
+  ✗ No improvement vs prev epoch (2/5)
+[text] Epoch  24/50  tr_loss=0.5071  tr_f1=0.7891  va_loss=0.6316  va_f1=0.6137  va_acc=0.6210  lr=2.68e-05
+  ✗ No improvement vs prev epoch (3/5)
+[text] Epoch  25/50  tr_loss=0.4985  tr_f1=0.7892  va_loss=0.6486  va_f1=0.6352  va_acc=0.6371  lr=2.52e-05
+[text] Epoch  26/50  tr_loss=0.4822  tr_f1=0.8033  va_loss=0.6573  va_f1=0.6275  va_acc=0.6290  lr=2.37e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  27/50  tr_loss=0.5065  tr_f1=0.7750  va_loss=0.6439  va_f1=0.6505  va_acc=0.6532  lr=2.21e-05
+[text] Epoch  28/50  tr_loss=0.5082  tr_f1=0.7772  va_loss=0.6517  va_f1=0.6275  va_acc=0.6290  lr=2.06e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  29/50  tr_loss=0.4786  tr_f1=0.8000  va_loss=0.6471  va_f1=0.6505  va_acc=0.6532  lr=1.91e-05
+[text] Epoch  30/50  tr_loss=0.4772  tr_f1=0.8148  va_loss=0.6512  va_f1=0.6275  va_acc=0.6290  lr=1.76e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  31/50  tr_loss=0.5062  tr_f1=0.7857  va_loss=0.6518  va_f1=0.6352  va_acc=0.6371  lr=1.61e-05
+[text] Epoch  32/50  tr_loss=0.5028  tr_f1=0.7839  va_loss=0.6423  va_f1=0.6352  va_acc=0.6371  lr=1.47e-05
+  ✗ No improvement vs prev epoch (1/5)
+[text] Epoch  33/50  tr_loss=0.4723  tr_f1=0.8224  va_loss=0.6463  va_f1=0.6352  va_acc=0.6371  lr=1.33e-05
+  ✗ No improvement vs prev epoch (2/5)
+[text] Epoch  34/50  tr_loss=0.4885  tr_f1=0.7826  va_loss=0.6505  va_f1=0.6352  va_acc=0.6371  lr=1.20e-05
+  ✗ No improvement vs prev epoch (3/5)
+[text] Epoch  35/50  tr_loss=0.4713  tr_f1=0.8110  va_loss=0.6542  va_f1=0.6352  va_acc=0.6371  lr=1.07e-05
+  ✗ No improvement vs prev epoch (4/5)
+[text] Epoch  36/50  tr_loss=0.4897  tr_f1=0.8006  va_loss=0.6473  va_f1=0.6266  va_acc=0.6290  lr=9.47e-06
+  ✗ No improvement vs prev epoch (5/5)
+  ⛔ Early stopping at epoch 36 (best val F1=0.6540)
+[text] Trained in 2.7 min — best val F1=0.6540
+
+======================================================================
+Training modality head: audio
+======================================================================
+[audio] Using L2 normalization (per-sample unit norm)
+
+[audio] input_dim=256  hidden_dims=[256, 128]  dropout=0.2  input_dropout=0.0  gaussian_noise=0.025  batchnorm=True  activation=relu  normalization=l2
+[audio] lr=1.00e-03  weight_decay=0.01  epochs=50  patience=20  scheduler=plateau
+[audio] Architecture:
+ModalityMLP(
+  (mlp): Sequential(
+    (0): _GaussianNoise(std=0.025)
+    (1): Linear(in_features=256, out_features=256, bias=True)
+    (2): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (3): ReLU()
+    (4): Dropout(p=0.2, inplace=False)
+    (5): Linear(in_features=256, out_features=128, bias=True)
+    (6): BatchNorm1d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout(p=0.2, inplace=False)
+    (9): Linear(in_features=128, out_features=2, bias=True)
+  )
+)
+[audio] Trainable params: 99,714
+[audio] Class counts — No A-H: 393  With A-H: 385
+
+[audio] Training MLP head ...
+[audio] Epoch   1/50  tr_loss=0.7126  tr_f1=0.5716  va_loss=0.6916  va_f1=0.4574  va_acc=0.5887  lr=1.00e-03
+  ✓ New best val F1=0.4574 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch   2/50  tr_loss=0.6958  tr_f1=0.5794  va_loss=0.6901  va_f1=0.5226  va_acc=0.5565  lr=1.00e-03
+  ✓ New best val F1=0.5226 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch   3/50  tr_loss=0.6785  tr_f1=0.5887  va_loss=0.7452  va_f1=0.3904  va_acc=0.4032  lr=1.00e-03
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch   4/50  tr_loss=0.6511  tr_f1=0.6496  va_loss=0.7223  va_f1=0.4775  va_acc=0.5403  lr=1.00e-03
+[audio] Epoch   5/50  tr_loss=0.6704  tr_f1=0.5886  va_loss=0.7592  va_f1=0.4689  va_acc=0.5000  lr=1.00e-03
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch   6/50  tr_loss=0.6570  tr_f1=0.6262  va_loss=0.7261  va_f1=0.5276  va_acc=0.5484  lr=5.00e-04
+  ✓ New best val F1=0.5276 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch   7/50  tr_loss=0.6684  tr_f1=0.6092  va_loss=0.7217  va_f1=0.5171  va_acc=0.5323  lr=5.00e-04
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch   8/50  tr_loss=0.6696  tr_f1=0.6183  va_loss=0.7087  va_f1=0.5420  va_acc=0.5806  lr=5.00e-04
+  ✓ New best val F1=0.5420 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch   9/50  tr_loss=0.6554  tr_f1=0.6237  va_loss=0.7279  va_f1=0.5097  va_acc=0.5403  lr=5.00e-04
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  10/50  tr_loss=0.6604  tr_f1=0.6021  va_loss=0.7333  va_f1=0.4769  va_acc=0.4919  lr=2.50e-04
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  11/50  tr_loss=0.6612  tr_f1=0.6356  va_loss=0.7096  va_f1=0.5241  va_acc=0.5484  lr=2.50e-04
+[audio] Epoch  12/50  tr_loss=0.6578  tr_f1=0.6069  va_loss=0.7114  va_f1=0.5071  va_acc=0.5323  lr=2.50e-04
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  13/50  tr_loss=0.6541  tr_f1=0.6181  va_loss=0.7070  va_f1=0.5436  va_acc=0.5887  lr=2.50e-04
+  ✓ New best val F1=0.5436 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch  14/50  tr_loss=0.6627  tr_f1=0.6300  va_loss=0.7054  va_f1=0.5308  va_acc=0.5565  lr=1.25e-04
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  15/50  tr_loss=0.6432  tr_f1=0.6582  va_loss=0.7122  va_f1=0.5203  va_acc=0.5484  lr=1.25e-04
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  16/50  tr_loss=0.6251  tr_f1=0.6635  va_loss=0.7169  va_f1=0.5466  va_acc=0.5806  lr=1.25e-04
+  ✓ New best val F1=0.5466 — saved /home3/iasarantsev/multimodal/weights/late_fusion_audio_best.pth
+[audio] Epoch  17/50  tr_loss=0.6476  tr_f1=0.6337  va_loss=0.7254  va_f1=0.5071  va_acc=0.5323  lr=1.25e-04
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  18/50  tr_loss=0.6537  tr_f1=0.6234  va_loss=0.7271  va_f1=0.4796  va_acc=0.5081  lr=6.25e-05
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  19/50  tr_loss=0.6209  tr_f1=0.6681  va_loss=0.7230  va_f1=0.5181  va_acc=0.5565  lr=6.25e-05
+[audio] Epoch  20/50  tr_loss=0.6401  tr_f1=0.6515  va_loss=0.7324  va_f1=0.4925  va_acc=0.5242  lr=6.25e-05
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  21/50  tr_loss=0.6495  tr_f1=0.6097  va_loss=0.7201  va_f1=0.5269  va_acc=0.5565  lr=6.25e-05
+[audio] Epoch  22/50  tr_loss=0.6443  tr_f1=0.6193  va_loss=0.7238  va_f1=0.5068  va_acc=0.5484  lr=3.13e-05
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  23/50  tr_loss=0.6297  tr_f1=0.6697  va_loss=0.7221  va_f1=0.4925  va_acc=0.5242  lr=3.13e-05
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  24/50  tr_loss=0.6480  tr_f1=0.6267  va_loss=0.7226  va_f1=0.5194  va_acc=0.5645  lr=3.13e-05
+[audio] Epoch  25/50  tr_loss=0.6490  tr_f1=0.6259  va_loss=0.7183  va_f1=0.5131  va_acc=0.5565  lr=3.13e-05
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  26/50  tr_loss=0.6333  tr_f1=0.6488  va_loss=0.7175  va_f1=0.4954  va_acc=0.5403  lr=1.56e-05
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  27/50  tr_loss=0.6313  tr_f1=0.6812  va_loss=0.7259  va_f1=0.4830  va_acc=0.5242  lr=1.56e-05
+  ✗ No improvement vs prev epoch (3/20)
+[audio] Epoch  28/50  tr_loss=0.6296  tr_f1=0.6516  va_loss=0.7148  va_f1=0.5097  va_acc=0.5403  lr=1.56e-05
+[audio] Epoch  29/50  tr_loss=0.6388  tr_f1=0.6566  va_loss=0.7387  va_f1=0.5107  va_acc=0.5323  lr=1.56e-05
+[audio] Epoch  30/50  tr_loss=0.6561  tr_f1=0.6001  va_loss=0.7291  va_f1=0.4967  va_acc=0.5242  lr=7.81e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  31/50  tr_loss=0.6168  tr_f1=0.6683  va_loss=0.7246  va_f1=0.4892  va_acc=0.5323  lr=7.81e-06
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  32/50  tr_loss=0.6515  tr_f1=0.6348  va_loss=0.7222  va_f1=0.4892  va_acc=0.5323  lr=7.81e-06
+  ✗ No improvement vs prev epoch (3/20)
+[audio] Epoch  33/50  tr_loss=0.6383  tr_f1=0.6447  va_loss=0.7217  va_f1=0.5226  va_acc=0.5565  lr=7.81e-06
+[audio] Epoch  34/50  tr_loss=0.6542  tr_f1=0.6323  va_loss=0.7265  va_f1=0.5162  va_acc=0.5484  lr=3.91e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  35/50  tr_loss=0.6409  tr_f1=0.6388  va_loss=0.7160  va_f1=0.5005  va_acc=0.5403  lr=3.91e-06
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  36/50  tr_loss=0.6522  tr_f1=0.6452  va_loss=0.7288  va_f1=0.5117  va_acc=0.5484  lr=3.91e-06
+[audio] Epoch  37/50  tr_loss=0.6474  tr_f1=0.6348  va_loss=0.7205  va_f1=0.4892  va_acc=0.5323  lr=3.91e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  38/50  tr_loss=0.6356  tr_f1=0.6632  va_loss=0.7200  va_f1=0.5020  va_acc=0.5565  lr=1.95e-06
+[audio] Epoch  39/50  tr_loss=0.6386  tr_f1=0.6553  va_loss=0.7257  va_f1=0.4830  va_acc=0.5242  lr=1.95e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  40/50  tr_loss=0.6393  tr_f1=0.6426  va_loss=0.7307  va_f1=0.5208  va_acc=0.5403  lr=1.95e-06
+[audio] Epoch  41/50  tr_loss=0.6461  tr_f1=0.6335  va_loss=0.7224  va_f1=0.4892  va_acc=0.5323  lr=1.95e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  42/50  tr_loss=0.6570  tr_f1=0.6367  va_loss=0.7305  va_f1=0.5097  va_acc=0.5403  lr=1.00e-06
+[audio] Epoch  43/50  tr_loss=0.6339  tr_f1=0.6527  va_loss=0.7220  va_f1=0.5308  va_acc=0.5565  lr=1.00e-06
+[audio] Epoch  44/50  tr_loss=0.6451  tr_f1=0.6386  va_loss=0.7263  va_f1=0.5053  va_acc=0.5403  lr=1.00e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  45/50  tr_loss=0.6247  tr_f1=0.6609  va_loss=0.7268  va_f1=0.5053  va_acc=0.5403  lr=1.00e-06
+  ✗ No improvement vs prev epoch (2/20)
+[audio] Epoch  46/50  tr_loss=0.6385  tr_f1=0.6526  va_loss=0.7186  va_f1=0.5005  va_acc=0.5403  lr=1.00e-06
+  ✗ No improvement vs prev epoch (3/20)
+[audio] Epoch  47/50  tr_loss=0.6277  tr_f1=0.6607  va_loss=0.7187  va_f1=0.4942  va_acc=0.5323  lr=1.00e-06
+  ✗ No improvement vs prev epoch (4/20)
+[audio] Epoch  48/50  tr_loss=0.6550  tr_f1=0.6285  va_loss=0.7155  va_f1=0.5005  va_acc=0.5403  lr=1.00e-06
+[audio] Epoch  49/50  tr_loss=0.6679  tr_f1=0.6027  va_loss=0.7278  va_f1=0.5005  va_acc=0.5403  lr=1.00e-06
+  ✗ No improvement vs prev epoch (1/20)
+[audio] Epoch  50/50  tr_loss=0.6321  tr_f1=0.6594  va_loss=0.7281  va_f1=0.5276  va_acc=0.5484  lr=1.00e-06
+[audio] Trained in 7.1 min — best val F1=0.5466
+
+======================================================================
+Training modality head: video
+======================================================================
+[video] Using StandardScaler (z-score normalization)
+
+[video] input_dim=768  hidden_dims=[128]  dropout=0.3  input_dropout=0.0  gaussian_noise=0.0  batchnorm=False  activation=gelu  normalization=standard
+[video] lr=5.00e-05  weight_decay=0.03  epochs=50  patience=10  scheduler=cosine
+[video] Architecture:
+ModalityMLP(
+  (mlp): Sequential(
+    (0): Linear(in_features=768, out_features=128, bias=True)
+    (1): GELU(approximate='none')
+    (2): Dropout(p=0.3, inplace=False)
+    (3): Linear(in_features=128, out_features=2, bias=True)
+  )
+)
+[video] Trainable params: 98,690
+[video] Class counts — No A-H: 393  With A-H: 385
+
+[video] Training MLP head ...
+[video] Epoch   1/50  tr_loss=0.6063  tr_f1=0.6979  va_loss=0.8421  va_f1=0.5441  va_acc=0.5484  lr=5.00e-05
+  ✓ New best val F1=0.5441 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch   2/50  tr_loss=0.5439  tr_f1=0.7648  va_loss=0.9191  va_f1=0.5352  va_acc=0.5403  lr=4.98e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch   3/50  tr_loss=0.5553  tr_f1=0.7493  va_loss=0.9427  va_f1=0.5262  va_acc=0.5323  lr=4.96e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch   4/50  tr_loss=0.5281  tr_f1=0.7661  va_loss=1.0040  va_f1=0.5262  va_acc=0.5323  lr=4.92e-05
+  ✗ No improvement vs prev epoch (3/10)
+[video] Epoch   5/50  tr_loss=0.5303  tr_f1=0.7654  va_loss=1.0022  va_f1=0.5262  va_acc=0.5323  lr=4.88e-05
+  ✗ No improvement vs prev epoch (4/10)
+[video] Epoch   6/50  tr_loss=0.5206  tr_f1=0.7648  va_loss=1.0271  va_f1=0.5441  va_acc=0.5484  lr=4.83e-05
+[video] Epoch   7/50  tr_loss=0.4988  tr_f1=0.7982  va_loss=1.0724  va_f1=0.5278  va_acc=0.5323  lr=4.76e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch   8/50  tr_loss=0.4888  tr_f1=0.7969  va_loss=1.1135  va_f1=0.5352  va_acc=0.5403  lr=4.69e-05
+[video] Epoch   9/50  tr_loss=0.4931  tr_f1=0.7968  va_loss=1.0944  va_f1=0.5515  va_acc=0.5565  lr=4.61e-05
+  ✓ New best val F1=0.5515 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  10/50  tr_loss=0.4873  tr_f1=0.8136  va_loss=1.1164  va_f1=0.5515  va_acc=0.5565  lr=4.53e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  11/50  tr_loss=0.4935  tr_f1=0.7755  va_loss=1.1364  va_f1=0.5604  va_acc=0.5645  lr=4.43e-05
+  ✓ New best val F1=0.5604 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  12/50  tr_loss=0.4681  tr_f1=0.8057  va_loss=1.1609  va_f1=0.5604  va_acc=0.5645  lr=4.33e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  13/50  tr_loss=0.4757  tr_f1=0.8109  va_loss=1.1541  va_f1=0.5379  va_acc=0.5403  lr=4.22e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  14/50  tr_loss=0.4651  tr_f1=0.8149  va_loss=1.1502  va_f1=0.5441  va_acc=0.5484  lr=4.10e-05
+[video] Epoch  15/50  tr_loss=0.4771  tr_f1=0.7969  va_loss=1.1757  va_f1=0.5529  va_acc=0.5565  lr=3.98e-05
+[video] Epoch  16/50  tr_loss=0.4610  tr_f1=0.8235  va_loss=1.1509  va_f1=0.5678  va_acc=0.5726  lr=3.85e-05
+  ✓ New best val F1=0.5678 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  17/50  tr_loss=0.4696  tr_f1=0.8098  va_loss=1.1403  va_f1=0.5678  va_acc=0.5726  lr=3.72e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  18/50  tr_loss=0.4442  tr_f1=0.8306  va_loss=1.1376  va_f1=0.5604  va_acc=0.5645  lr=3.58e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  19/50  tr_loss=0.4265  tr_f1=0.8468  va_loss=1.2062  va_f1=0.5515  va_acc=0.5565  lr=3.44e-05
+  ✗ No improvement vs prev epoch (3/10)
+[video] Epoch  20/50  tr_loss=0.4732  tr_f1=0.8019  va_loss=1.1471  va_f1=0.5589  va_acc=0.5645  lr=3.29e-05
+[video] Epoch  21/50  tr_loss=0.4321  tr_f1=0.8432  va_loss=1.2046  va_f1=0.5678  va_acc=0.5726  lr=3.14e-05
+[video] Epoch  22/50  tr_loss=0.4419  tr_f1=0.8367  va_loss=1.2063  va_f1=0.5604  va_acc=0.5645  lr=2.99e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  23/50  tr_loss=0.4507  tr_f1=0.8247  va_loss=1.2228  va_f1=0.5692  va_acc=0.5726  lr=2.84e-05
+  ✓ New best val F1=0.5692 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  24/50  tr_loss=0.4342  tr_f1=0.8406  va_loss=1.1908  va_f1=0.5779  va_acc=0.5806  lr=2.68e-05
+  ✓ New best val F1=0.5779 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  25/50  tr_loss=0.4194  tr_f1=0.8647  va_loss=1.2074  va_f1=0.5854  va_acc=0.5887  lr=2.52e-05
+  ✓ New best val F1=0.5854 — saved /home3/iasarantsev/multimodal/weights/late_fusion_video_best.pth
+[video] Epoch  26/50  tr_loss=0.4340  tr_f1=0.8449  va_loss=1.2023  va_f1=0.5854  va_acc=0.5887  lr=2.37e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  27/50  tr_loss=0.4279  tr_f1=0.8470  va_loss=1.1779  va_f1=0.5779  va_acc=0.5806  lr=2.21e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  28/50  tr_loss=0.4242  tr_f1=0.8509  va_loss=1.2056  va_f1=0.5703  va_acc=0.5726  lr=2.06e-05
+  ✗ No improvement vs prev epoch (3/10)
+[video] Epoch  29/50  tr_loss=0.4426  tr_f1=0.8350  va_loss=1.1781  va_f1=0.5789  va_acc=0.5806  lr=1.91e-05
+[video] Epoch  30/50  tr_loss=0.4377  tr_f1=0.8582  va_loss=1.1638  va_f1=0.5627  va_acc=0.5645  lr=1.76e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  31/50  tr_loss=0.4244  tr_f1=0.8612  va_loss=1.1864  va_f1=0.5627  va_acc=0.5645  lr=1.61e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  32/50  tr_loss=0.4453  tr_f1=0.8457  va_loss=1.1692  va_f1=0.5473  va_acc=0.5484  lr=1.47e-05
+  ✗ No improvement vs prev epoch (3/10)
+[video] Epoch  33/50  tr_loss=0.4293  tr_f1=0.8529  va_loss=1.1695  va_f1=0.5550  va_acc=0.5565  lr=1.33e-05
+[video] Epoch  34/50  tr_loss=0.4228  tr_f1=0.8625  va_loss=1.1979  va_f1=0.5550  va_acc=0.5565  lr=1.20e-05
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  35/50  tr_loss=0.4240  tr_f1=0.8450  va_loss=1.1887  va_f1=0.5550  va_acc=0.5565  lr=1.07e-05
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  36/50  tr_loss=0.4318  tr_f1=0.8404  va_loss=1.1864  va_f1=0.5627  va_acc=0.5645  lr=9.47e-06
+[video] Epoch  37/50  tr_loss=0.4205  tr_f1=0.8584  va_loss=1.2047  va_f1=0.5627  va_acc=0.5645  lr=8.31e-06
+  ✗ No improvement vs prev epoch (1/10)
+[video] Epoch  38/50  tr_loss=0.4208  tr_f1=0.8553  va_loss=1.1950  va_f1=0.5627  va_acc=0.5645  lr=7.21e-06
+  ✗ No improvement vs prev epoch (2/10)
+[video] Epoch  39/50  tr_loss=0.4249  tr_f1=0.8621  va_loss=1.1825  va_f1=0.5627  va_acc=0.5645  lr=6.18e-06
+  ✗ No improvement vs prev epoch (3/10)
+[video] Epoch  40/50  tr_loss=0.4159  tr_f1=0.8713  va_loss=1.1799  va_f1=0.5627  va_acc=0.5645  lr=5.23e-06
+  ✗ No improvement vs prev epoch (4/10)
+[video] Epoch  41/50  tr_loss=0.4381  tr_f1=0.8458  va_loss=1.1773  va_f1=0.5627  va_acc=0.5645  lr=4.35e-06
+  ✗ No improvement vs prev epoch (5/10)
+[video] Epoch  42/50  tr_loss=0.4148  tr_f1=0.8778  va_loss=1.1784  va_f1=0.5627  va_acc=0.5645  lr=3.56e-06
+  ✗ No improvement vs prev epoch (6/10)
+[video] Epoch  43/50  tr_loss=0.4255  tr_f1=0.8496  va_loss=1.1820  va_f1=0.5627  va_acc=0.5645  lr=2.86e-06
+  ✗ No improvement vs prev epoch (7/10)
+[video] Epoch  44/50  tr_loss=0.4223  tr_f1=0.8753  va_loss=1.1795  va_f1=0.5627  va_acc=0.5645  lr=2.24e-06
+  ✗ No improvement vs prev epoch (8/10)
+[video] Epoch  45/50  tr_loss=0.4201  tr_f1=0.8582  va_loss=1.1800  va_f1=0.5627  va_acc=0.5645  lr=1.71e-06
+  ✗ No improvement vs prev epoch (9/10)
+[video] Epoch  46/50  tr_loss=0.4210  tr_f1=0.8512  va_loss=1.1787  va_f1=0.5627  va_acc=0.5645  lr=1.28e-06
+  ✗ No improvement vs prev epoch (10/10)
+  ⛔ Early stopping at epoch 46 (best val F1=0.5854)
+[video] Trained in 3.1 min — best val F1=0.5854
+Training curves saved → /home3/iasarantsev/multimodal/weights/late_fusion_training_curves.png
+
+======================================================================
+Per-modality test scores (before fusion)
+======================================================================
+
+[text (test, view 0)] Macro-F1: 0.6892  |  Accuracy: 0.6971
+[text (test, view 0)] Label dist : {1: 318, 0: 207}
+[text (test, view 0)] Pred  dist : {0: 234, 1: 291}
+              precision    recall  f1-score   support
+
+      No A-H     0.6026    0.6812    0.6395       207
+    With A-H     0.7732    0.7075    0.7389       318
+
+    accuracy                         0.6971       525
+   macro avg     0.6879    0.6944    0.6892       525
+weighted avg     0.7059    0.6971    0.6997       525
+
+
+[audio (test, view 0)] Macro-F1: 0.5975  |  Accuracy: 0.6133
+[audio (test, view 0)] Label dist : {1: 318, 0: 207}
+[audio (test, view 0)] Pred  dist : {0: 214, 1: 311}
+              precision    recall  f1-score   support
+
+      No A-H     0.5093    0.5266    0.5178       207
+    With A-H     0.6849    0.6698    0.6773       318
+
+    accuracy                         0.6133       525
+   macro avg     0.5971    0.5982    0.5975       525
+weighted avg     0.6157    0.6133    0.6144       525
+
+
+[video (test, view 0)] Macro-F1: 0.5107  |  Accuracy: 0.5124
+[video (test, view 0)] Label dist : {1: 318, 0: 207}
+[video (test, view 0)] Pred  dist : {0: 287, 1: 238}
+              precision    recall  f1-score   support
+
+      No A-H     0.4146    0.5749    0.4818       207
+    With A-H     0.6303    0.4717    0.5396       318
+
+    accuracy                         0.5124       525
+   macro avg     0.5224    0.5233    0.5107       525
+weighted avg     0.5452    0.5124    0.5168       525
+
+
+======================================================================
+Temperature scaling (fit on val NLL)
+======================================================================
+  [text] T*=1.556  (T>1 ⇒ softening over-confident head)
+  [audio] T*=4.088  (T>1 ⇒ softening over-confident head)
+  [video] T*=5.000  (T>1 ⇒ softening over-confident head)
+
+======================================================================
+Late-fusion combiners — full set + leave-out subsets
+======================================================================
+
+── Subset: { text+audio+video } ──
+  weighted-prob   best val weights = {'text': 0.5, 'audio': 0.05, 'video': 0.45}
+  weighted-logit  best val weights = {'text': 0.6000000000000001, 'audio': 0.0, 'video': 0.3999999999999999}
+  PSO-prob   best val weights = {'text': 0.8455764236906511, 'audio': 0.032092766333400184, 'video': 0.12233080997594872}  temps = {'text': 5.0, 'audio': 4.255789167643077, 'video': 2.1714593764861965}  val_f1=0.7059
+  PSO-logit  best val weights = {'text': 0.8997627601103603, 'audio': 0.03217134442782367, 'video': 0.06806589546181609}  temps = {'text': 4.788575162847541, 'audio': 4.876823808254025, 'video': 1.7927547365022831}  val_f1=0.7048
+
+── Subset: { text+audio } ──
+  weighted-prob   best val weights = {'text': 0.9, 'audio': 0.09999999999999998}
+  weighted-logit  best val weights = {'text': 0.9, 'audio': 0.09999999999999998}
+  PSO-prob   best val weights = {'text': 0.8976123396827599, 'audio': 0.1023876603172401}  temps = {'text': 0.7411640966821202, 'audio': 3.041311717844132}  val_f1=0.6540
+  PSO-logit  best val weights = {'text': 0.8976123396827599, 'audio': 0.1023876603172401}  temps = {'text': 0.7411640966821202, 'audio': 3.041311717844132}  val_f1=0.6540
+
+── Subset: { text+video } ──
+  weighted-prob   best val weights = {'text': 0.55, 'video': 0.44999999999999996}
+  weighted-logit  best val weights = {'text': 0.6000000000000001, 'video': 0.3999999999999999}
+  PSO-prob   best val weights = {'text': 0.7974282536889832, 'video': 0.20257174631101682}  temps = {'text': 2.268871368318683, 'video': 1.9374020756073307}  val_f1=0.7059
+  PSO-logit  best val weights = {'text': 0.8771994431233442, 'video': 0.12280055687665575}  temps = {'text': 5.0, 'video': 3.422030373761138}  val_f1=0.7048
+
+========================================================================================================
+Late-Fusion Summary  (macro-F1 / accuracy; V+T = val + test pooled)
+========================================================================================================
+Strategy                                      Val F1   Val acc   Test F1  Test acc    V+T F1   V+T acc
+------------------------------------------------------------------------------------------------------
+unimodal: text                                0.6540    0.6613    0.6892    0.6971    0.6824    0.6903
+unimodal: audio                               0.5466    0.5806    0.5975    0.6133    0.5885    0.6071
+unimodal: video                               0.5854    0.5887    0.5107    0.5124    0.5250    0.5270
+[text+audio+video] mean (raw)                 0.6392    0.6452    0.6402    0.6457    0.6400    0.6456
+[text+audio+video] mean (T-scaled)            0.6505    0.6532    0.6775    0.6857    0.6725    0.6795
+[text+audio+video] logit-mean (raw)           0.5941    0.5968    0.6356    0.6400    0.6277    0.6317
+[text+audio+video] logit-mean (T-scaled)      0.6505    0.6532    0.6753    0.6838    0.6708    0.6780
+[text+audio+video] weighted (T-scaled, prob)    0.6983    0.7016    0.6740    0.6838    0.6790    0.6872
+[text+audio+video] weighted (T-scaled, logit)    0.7048    0.7097    0.6831    0.6914    0.6873    0.6949
+[text+audio+video] meta-LR (T-scaled)         0.6365    0.6371    0.6338    0.6381    0.6346    0.6379
+[text+audio+video] PSO (prob)                 0.7059    0.7097    0.6758    0.6857    0.6818    0.6903
+[text+audio+video] PSO (logit)                0.7048    0.7097    0.6853    0.6933    0.6891    0.6965
+[text+audio] mean (raw)                       0.6120    0.6290    0.6945    0.7048    0.6789    0.6903
+[text+audio] mean (T-scaled)                  0.6191    0.6290    0.6927    0.7010    0.6786    0.6872
+[text+audio] logit-mean (raw)                 0.6120    0.6290    0.6945    0.7048    0.6789    0.6903
+[text+audio] logit-mean (T-scaled)            0.6191    0.6290    0.6927    0.7010    0.6786    0.6872
+[text+audio] weighted (T-scaled, prob)        0.6540    0.6613    0.6857    0.6933    0.6796    0.6872
+[text+audio] weighted (T-scaled, logit)       0.6540    0.6613    0.6857    0.6933    0.6796    0.6872
+[text+audio] meta-LR (T-scaled)               0.6392    0.6452    0.6913    0.6971    0.6814    0.6872
+[text+audio] PSO (prob)                       0.6540    0.6613    0.6857    0.6933    0.6796    0.6872
+[text+audio] PSO (logit)                      0.6540    0.6613    0.6857    0.6933    0.6796    0.6872
+[text+video] mean (raw)                       0.6036    0.6048    0.6228    0.6267    0.6192    0.6225
+[text+video] mean (T-scaled)                  0.6907    0.6935    0.6631    0.6724    0.6687    0.6764
+[text+video] logit-mean (raw)                 0.6036    0.6048    0.6228    0.6267    0.6192    0.6225
+[text+video] logit-mean (T-scaled)            0.6907    0.6935    0.6631    0.6724    0.6687    0.6764
+[text+video] weighted (T-scaled, prob)        0.6983    0.7016    0.6819    0.6914    0.6853    0.6934
+[text+video] weighted (T-scaled, logit)       0.7048    0.7097    0.6831    0.6914    0.6873    0.6949
+[text+video] meta-LR (T-scaled)               0.6365    0.6371    0.6299    0.6343    0.6315    0.6348
+[text+video] PSO (prob)                       0.7059    0.7097    0.6805    0.6895    0.6856    0.6934
+[text+video] PSO (logit)                      0.7048    0.7097    0.6835    0.6914    0.6876    0.6949
+========================================================================================================
+Temperatures         : {'text': 1.5564102564102564, 'audio': 4.088461538461538, 'video': 5.0}
+Per-modality weights : /home3/iasarantsev/multimodal/weights/late_fusion_<mod>_best.pth
+Per-modality scalers : /home3/iasarantsev/multimodal/weights/late_fusion_<mod>_best.scaler.joblib
+Meta + temps + ws    : /home3/iasarantsev/multimodal/weights/late_fusion_meta.joblib
+Training curves      : /home3/iasarantsev/multimodal/weights/late_fusion_training_curves.png

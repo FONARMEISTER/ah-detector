@@ -34,13 +34,9 @@ active_modalities = ["text", "audio", "video"]
 # produced by the stage-1 extractors above.
 cache_dir = "multimodal/cache"
 
-# Which text backbone's cache to use for fusion.  Must match a backbone
-# previously extracted via extract_text.py (i.e. the file
-# ``multimodal/cache/text_<backbone>_embs_<split>.pt`` must exist).
 # "distilbert"                → uses text_distilbert_embs_<split>.pt
 # "distilroberta_emotional"   → uses text_distilroberta_emotional_embs_<split>.pt
-# Omit or set to null to use the legacy unsuffixed text_embs_<split>.pt.
-text_backbone = "distilroberta_emotional"
+text_backbone = "distilbert"
 
 # Which video backbone's cache to use for fusion.  Must match a backbone
 # previously extracted via extract_video.py (i.e. the file
@@ -81,7 +77,7 @@ modality_input_dropout = 0.0
 # baseline run (text: well-tuned, audio: underfits, video: overfits hard).
 
 [fusion.modality.text]
-hidden_dims     = [256, 128]
+hidden_dims     = []
 dropout         = 0.2
 input_dropout   = 0.0
 learning_rate   = 1e-3
@@ -91,7 +87,7 @@ gaussian_noise  = 0
 use_batchnorm   = true
 activation      = "relu"
 scheduler       = "plateau"
-epochs          = 50
+epochs          = 100
 patience        = 20
 
 [fusion.modality.audio]
@@ -104,28 +100,28 @@ patience        = 20
 hidden_dims     = [256, 128]
 dropout         = 0.2
 input_dropout   = 0.0
-learning_rate   = 1e-3
+learning_rate   = 5e-4
 weight_decay    = 1e-2
 normalization   = "l2"
 gaussian_noise  = 0
 use_batchnorm   = true
 activation      = "relu"
 scheduler       = "plateau"
-epochs          = 50
+epochs          = 100
 patience        = 20
 
 [fusion.modality.video]
 hidden_dims     = [256, 128]
 dropout         = 0.2
 input_dropout   = 0.0
-learning_rate   = 1e-3
+learning_rate   = 1e-4
 weight_decay    = 1e-2
 normalization   = "l2"
 gaussian_noise  = 0
 use_batchnorm   = true
 activation      = "relu"
 scheduler       = "plateau"
-epochs          = 50
+epochs          = 100
 patience        = 20
 
 # ── Training defaults (apply to all per-modality heads unless overridden) ─────
