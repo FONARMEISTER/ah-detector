@@ -36,7 +36,7 @@ weights_dir = "multimodal/weights"
 text_head    = "late_fusion_text_best.pth"
 audio_head   = "late_fusion_audio_best.pth"
 video_head   = "late_fusion_video_best.pth"
-# Per-modality StandardScaler checkpoints.
+# Per-modality normalizer checkpoints (L2Normalizer or StandardScaler).
 text_scaler  = "late_fusion_text_best.scaler.joblib"
 audio_scaler = "late_fusion_audio_best.scaler.joblib"
 video_scaler = "late_fusion_video_best.scaler.joblib"

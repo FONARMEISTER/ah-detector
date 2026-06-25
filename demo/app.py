@@ -280,6 +280,42 @@ def extract_video_embedding(
 
 # ── Step 5: Late-fusion classification ──────────────────────────────────────
 
+
+class _L2Normalizer:
+    """
+    Per-sample L2 normalization: ``x / (||x||_2 + eps)``.
+
+    Mirrors the ``_L2Normalizer`` defined in ``late_fusion_training.py`` so
+    that ``joblib.load()`` can unpickle ``.scaler.joblib`` files that were
+    saved with this class.  Also provides ``.transform()`` for inline use.
+    """
+
+    def fit(self, X: np.ndarray) -> "_L2Normalizer":
+        return self
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        norms = np.linalg.norm(X, axis=1, keepdims=True) + 1e-12
+        return (X / norms).astype(np.float32)
+
+    def fit_transform(self, X: np.ndarray) -> np.ndarray:
+        self.fit(X)
+        return self.transform(X)
+
+
+# Register _L2Normalizer for joblib/pickle deserialization.
+# The training script (late_fusion_training.py) runs as __main__, so the
+# class is pickled as ``__main__._L2Normalizer``.  In the demo, __main__
+# IS this file, so defining it here works automatically.
+# Also register under the module name in case it was imported, not run directly.
+import types as _types
+
+_compat_mod = _types.ModuleType("late_fusion_training")
+_compat_mod._L2Normalizer = _L2Normalizer
+import sys as _sys
+
+_sys.modules.setdefault("late_fusion_training", _compat_mod)
+
+
 class _GaussianNoiseInfer(torch.nn.Module):
     """No-op at eval time — matches training's _GaussianNoise."""
 
@@ -343,9 +379,10 @@ def run_late_fusion(
 ) -> dict:
     """
     Run the full late-fusion pipeline:
-      1. Scale each embedding with its fitted StandardScaler.
+      1. Normalise each embedding with its fitted scaler (L2 or StandardScaler).
       2. Forward through per-modality MLP heads → softmax probs.
-      3. Fuse via simple probability averaging.
+      3. Fuse via PSO-optimised weighted probability averaging with
+         temperature scaling.
 
     Returns a dict with per-modality probs and the fused prediction.
     """
@@ -354,12 +391,12 @@ def run_late_fusion(
     fcfg = CFG["fusion"]
     wdir = REPO_ROOT / fcfg["weights_dir"]
 
-    # Load scalers.
+    # Load normalizers (may be StandardScaler or _L2Normalizer).
     scaler_t = joblib.load(wdir / fcfg["text_scaler"])
     scaler_a = joblib.load(wdir / fcfg["audio_scaler"])
     scaler_v = joblib.load(wdir / fcfg["video_scaler"])
 
-    # Scale embeddings.
+    # Normalise embeddings (L2 norm or z-score depending on saved scaler type).
     text_scaled = torch.from_numpy(
         scaler_t.transform(text_emb.unsqueeze(0).numpy()).astype(np.float32)
     ).to(device)
@@ -446,28 +483,28 @@ def run_pipeline(video_path: Path, log_fn) -> dict:
     dict with prediction results.
     """
     device = _resolve_device()
-    log_fn(f"🖥️  Device: {device}")
+    log_fn(f"Устройство: {device}")
     session_dir = video_path.parent
 
     # ── 1. Audio ─────────────────────────────────────────────────────────────
     audio_path = session_dir / "audio.wav"
     if audio_path.exists():
-        log_fn("🔊 Step 1/6: Audio already recorded by microphone — skipping extraction")
+        log_fn("Шаг 1/6: Аудио уже записано с микрофона — извлечение пропущено")
     else:
-        log_fn("🔊 Step 1/6: Extracting audio from video via ffmpeg ...")
+        log_fn("Шаг 1/6: Извлечение аудио из видео через ffmpeg ...")
         t0 = time.time()
         extract_audio_from_video(video_path, audio_path, sr=CFG["audio"]["sample_rate"])
-        log_fn(f"   ✓ Audio extracted ({time.time() - t0:.1f}s)")
+        log_fn(f"   Аудио извлечено ({time.time() - t0:.1f}s)")
 
     # ── 2. Whisper transcription ─────────────────────────────────────────────
-    log_fn("📝 Step 2/6: Transcribing audio with Whisper ...")
+    log_fn("Шаг 2/6: Транскрибирование аудио (Whisper) ...")
     t0 = time.time()
     transcript = transcribe_audio(audio_path, model_size=CFG["whisper"]["model_size"])
-    log_fn(f"   ✓ Transcript ({time.time() - t0:.1f}s):")
+    log_fn(f"   Транскрипт ({time.time() - t0:.1f}s):")
     log_fn(f"   \"{transcript[:200]}{'...' if len(transcript) > 200 else ''}\"")
 
     # ── 3. YOLO segmentation ────────────────────────────────────────────────
-    log_fn("🎯 Step 3/6: Running YOLO person segmentation ...")
+    log_fn("Шаг 3/6: Сегментация YOLO (выделение человека) ...")
     t0 = time.time()
     frames_dir = session_dir / "segmented_frames"
     yolo_path = REPO_ROOT / CFG["paths"]["yolo_model"]
@@ -475,7 +512,7 @@ def run_pipeline(video_path: Path, log_fn) -> dict:
         video_path, frames_dir, yolo_path,
         image_size=CFG["video"]["image_size"],
     )
-    log_fn(f"   ✓ {len(frame_paths)} segmented frames ({time.time() - t0:.1f}s)")
+    log_fn(f"   {len(frame_paths)} сегментированных кадров ({time.time() - t0:.1f}s)")
 
     # Save an example segmented frame for visual inspection.
     if frame_paths:
@@ -483,58 +520,58 @@ def run_pipeline(video_path: Path, log_fn) -> dict:
         example_src = frame_paths[len(frame_paths) // 2]  # middle frame
         example_dst = session_dir / "example_segmented_frame.jpg"
         shutil.copy2(str(example_src), str(example_dst))
-        log_fn(f"   📸 Example frame saved: {example_dst.name}")
+        log_fn(f"   Пример кадра сохранён: {example_dst.name}")
 
     # ── 4. Extract embeddings ───────────────────────────────────────────────
-    log_fn("🧠 Step 4/6: Extracting text embedding ...")
+    log_fn("Шаг 4/6: Извлечение текстового эмбеддинга ...")
     t0 = time.time()
     text_emb = extract_text_embedding(transcript, device)
-    log_fn(f"   ✓ Text embedding: shape={tuple(text_emb.shape)} ({time.time() - t0:.1f}s)")
+    log_fn(f"   Текстовый эмбеддинг: shape={tuple(text_emb.shape)} ({time.time() - t0:.1f}s)")
 
-    log_fn("🧠 Step 4b/6: Extracting audio embedding ...")
+    log_fn("Шаг 4б/6: Извлечение аудио-эмбеддинга ...")
     t0 = time.time()
     audio_emb = extract_audio_embedding(audio_path, device)
-    log_fn(f"   ✓ Audio embedding: shape={tuple(audio_emb.shape)} ({time.time() - t0:.1f}s)")
+    log_fn(f"   Аудио-эмбеддинг: shape={tuple(audio_emb.shape)} ({time.time() - t0:.1f}s)")
 
-    log_fn("🧠 Step 4c/6: Extracting video embedding ...")
+    log_fn("Шаг 4в/6: Извлечение видео-эмбеддинга ...")
     t0 = time.time()
     video_emb = extract_video_embedding(frame_paths, device)
-    log_fn(f"   ✓ Video embedding: shape={tuple(video_emb.shape)} ({time.time() - t0:.1f}s)")
+    log_fn(f"   Видео-эмбеддинг: shape={tuple(video_emb.shape)} ({time.time() - t0:.1f}s)")
 
     # ── 5. Late-fusion classification ───────────────────────────────────────
-    log_fn("⚡ Step 6/6: Running late-fusion classifier ...")
+    log_fn("Шаг 5/6: Классификация (позднее слияние) ...")
     t0 = time.time()
     result = run_late_fusion(text_emb, audio_emb, video_emb, device)
-    log_fn(f"   ✓ Classification done ({time.time() - t0:.1f}s)")
+    log_fn(f"   Классификация завершена ({time.time() - t0:.1f}s)")
 
     # ── 6. Report ───────────────────────────────────────────────────────────
     log_fn("")
     log_fn("=" * 50)
-    log_fn("📊 RESULTS")
+    log_fn("РЕЗУЛЬТАТЫ")
     log_fn("=" * 50)
     w = result.get("weights", {})
-    log_fn(f"  Text  raw   : No A/H={result['text_probs'][0]:.3f}  "
-           f"With A/H={result['text_probs'][1]:.3f}")
-    log_fn(f"  Text  cal   : No A/H={result['text_probs_cal'][0]:.3f}  "
-           f"With A/H={result['text_probs_cal'][1]:.3f}  "
+    log_fn(f"  Текст сырые : Нет А/Н={result['text_probs'][0]:.3f}  "
+           f"А/Н={result['text_probs'][1]:.3f}")
+    log_fn(f"  Текст калиб.: Нет А/Н={result['text_probs_cal'][0]:.3f}  "
+           f"А/Н={result['text_probs_cal'][1]:.3f}  "
            f"(w={w.get('text', 0):.3f})")
-    log_fn(f"  Audio raw   : No A/H={result['audio_probs'][0]:.3f}  "
-           f"With A/H={result['audio_probs'][1]:.3f}")
-    log_fn(f"  Audio cal   : No A/H={result['audio_probs_cal'][0]:.3f}  "
-           f"With A/H={result['audio_probs_cal'][1]:.3f}  "
+    log_fn(f"  Аудио сырые : Нет А/Н={result['audio_probs'][0]:.3f}  "
+           f"А/Н={result['audio_probs'][1]:.3f}")
+    log_fn(f"  Аудио калиб.: Нет А/Н={result['audio_probs_cal'][0]:.3f}  "
+           f"А/Н={result['audio_probs_cal'][1]:.3f}  "
            f"(w={w.get('audio', 0):.3f})")
-    log_fn(f"  Video raw   : No A/H={result['video_probs'][0]:.3f}  "
-           f"With A/H={result['video_probs'][1]:.3f}")
-    log_fn(f"  Video cal   : No A/H={result['video_probs_cal'][0]:.3f}  "
-           f"With A/H={result['video_probs_cal'][1]:.3f}  "
+    log_fn(f"  Видео сырые : Нет А/Н={result['video_probs'][0]:.3f}  "
+           f"А/Н={result['video_probs'][1]:.3f}")
+    log_fn(f"  Видео калиб.: Нет А/Н={result['video_probs_cal'][0]:.3f}  "
+           f"А/Н={result['video_probs_cal'][1]:.3f}  "
            f"(w={w.get('video', 0):.3f})")
-    log_fn(f"  Fused probs : No A/H={result['fused_probs'][0]:.3f}  "
-           f"With A/H={result['fused_probs'][1]:.3f}")
+    log_fn(f"  Итог слияние: Нет А/Н={result['fused_probs'][0]:.3f}  "
+           f"А/Н={result['fused_probs'][1]:.3f}")
     log_fn("")
     if result["prediction"] == 1:
-        log_fn("  🔴  PREDICTION: A/H DETECTED")
+        log_fn("  ПРОГНОЗ: А/Н ОБНАРУЖЕНА")
     else:
-        log_fn("  🟢  PREDICTION: No A/H detected")
+        log_fn("  ПРОГНОЗ: А/Н не обнаружена")
     log_fn("=" * 50)
 
     # Save transcript for reference.
@@ -598,14 +635,14 @@ class DemoApp:
         btn_frame.pack(fill=tk.X, pady=5)
 
         self.record_btn = tk.Button(
-            btn_frame, text="🔴  Start Recording", font=("Helvetica", 14, "bold"),
+            btn_frame, text="Начать запись", font=("Helvetica", 14, "bold"),
             bg="#e74c3c", fg="white", command=self._toggle_recording,
             height=2,
         )
         self.record_btn.pack(fill=tk.X, padx=5)
 
         self.status_label = tk.Label(
-            left, text="Ready — press the button to start recording",
+            left, text="Готово — нажмите кнопку для начала записи",
             font=("Helvetica", 11), anchor="w",
         )
         self.status_label.pack(fill=tk.X, padx=5)
@@ -622,7 +659,7 @@ class DemoApp:
         right.pack(side=tk.RIGHT, fill=tk.BOTH, padx=5, pady=5)
         right.pack_propagate(False)
 
-        tk.Label(right, text="Pipeline Log", font=("Helvetica", 12, "bold")).pack(
+        tk.Label(right, text="Журнал обработки", font=("Helvetica", 12, "bold")).pack(
             anchor="w", padx=5
         )
 
@@ -703,10 +740,10 @@ class DemoApp:
         self._start_audio_recording()
 
         self.is_recording = True
-        self.record_btn.configure(text="⏹  Stop Recording", bg="#2ecc71")
-        self.status_label.configure(text="Recording ... press Stop when done")
+        self.record_btn.configure(text="Остановить запись", bg="#2ecc71")
+        self.status_label.configure(text="Запись ... нажмите Стоп для завершения")
         self.result_label.configure(text="", bg=self.root.cget("bg"))
-        self._log("🎬 Recording started ...")
+        self._log("Запись начата ...")
 
     def _start_audio_recording(self):
         """Start capturing audio from the default microphone."""
@@ -742,11 +779,11 @@ class DemoApp:
             audio_data = np.concatenate(self.audio_frames, axis=0)
             audio_path = self.current_session_dir / "audio.wav"
             sf.write(str(audio_path), audio_data, CFG["audio"]["sample_rate"])
-            self._log(f"🔊 Audio saved: {audio_path.name}")
+            self._log(f"Аудио сохранено: {audio_path.name}")
 
-        self.record_btn.configure(text="🔴  Start Recording", bg="#e74c3c")
-        self.status_label.configure(text="Recording saved. Running pipeline ...")
-        self._log(f"🎬 Recording stopped → {self.current_video_path}")
+        self.record_btn.configure(text="Начать запись", bg="#e74c3c")
+        self.status_label.configure(text="Запись сохранена. Запуск обработки ...")
+        self._log(f"Запись остановлена -> {self.current_video_path}")
 
         # Run the pipeline in a background thread.
         self.pipeline_running = True
@@ -764,7 +801,7 @@ class DemoApp:
             # Schedule UI update on the main thread.
             self.root.after(0, lambda: self._show_result(result))
         except Exception as e:
-            self._log_threadsafe(f"❌ Pipeline error: {e}")
+            self._log_threadsafe(f"Ошибка обработки: {e}")
             import traceback
             self._log_threadsafe(traceback.format_exc())
         finally:
@@ -774,18 +811,18 @@ class DemoApp:
         """Update the result banner on the main thread."""
         if result["prediction"] == 1:
             self.result_label.configure(
-                text="🔴  A/H DETECTED", bg="#e74c3c", fg="white",
+                text="А/Н ОБНАРУЖЕНА", bg="#e74c3c", fg="white",
             )
         else:
             self.result_label.configure(
-                text="🟢  No A/H detected", bg="#2ecc71", fg="white",
+                text="А/Н не обнаружена", bg="#2ecc71", fg="white",
             )
 
     def _pipeline_done(self):
         """Called on main thread after pipeline completes."""
         self.pipeline_running = False
         self.record_btn.configure(state=tk.NORMAL)
-        self.status_label.configure(text="Ready — press the button to start recording")
+        self.status_label.configure(text="Готово — нажмите кнопку для начала записи")
 
     # ── Logging ───────────────────────────────────────────────────────────────
 
