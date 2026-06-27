@@ -9,3 +9,4 @@ data.zip
 .ipynb_checkpoints/
 *.pth
 recordings/
+.docx
