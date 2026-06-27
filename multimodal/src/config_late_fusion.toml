@@ -49,6 +49,7 @@ video_backbone = "videomae"
 # previously extracted via extract_audio.py (i.e. the file
 # ``multimodal/cache/audio_<backbone>_embs_<split>.pt`` must exist).
 # "wav2vec2emotional" → uses audio_wav2vec2emotional_embs_<split>.pt
+# "wav2vec2"          → uses audio_wav2vec2_embs_<split>.pt
 # "hubert"            → uses audio_hubert_embs_<split>.pt
 audio_backbone = "wav2vec2emotional"
 

@@ -59,21 +59,25 @@ weights_path = "text/weights/distilroberta_emotional_bah_best.pth"
 
 # ── Audio backbone ────────────────────────────────────────────────────────────
 # ``backbone`` selects which encoder (and therefore which fine-tuned weights /
-# cache file) we read.  Both backbones expose a 256-d projected embedding
+# cache file) we read.  All backbones expose a 256-d projected embedding
 # (classifier_proj_size), so downstream fusion code is unaffected by the
 # choice — only the cache filename changes (``audio_<backbone>_embs_<split>.pt``).
 [audio]
-backbone        = "hubert"   # "wav2vec2emotional" | "hubert"
+backbone        = "hubert"   # "wav2vec2emotional" | "wav2vec2" | "hubert"
 # Shared knobs (used by whichever backbone is selected).
 sample_rate     = 16000
 max_length_sec  = 30.0
 
 # Per-backbone overrides.  The active block is the one whose name matches
 # ``backbone``.  Caches live at ``audio_<backbone>_embs_<split>.pt`` so
-# wav2vec2emotional and hubert embeddings can coexist on disk.
+# wav2vec2emotional, wav2vec2, and hubert embeddings can coexist on disk.
 [audio.wav2vec2emotional]
 model_name   = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
 weights_path = "audio/weights/wav2vec2emotional_bah_best.pth"
+
+[audio.wav2vec2]
+model_name   = "facebook/wav2vec2-base"
+weights_path = "audio/weights/wav2vec2_bah_best.pth"
 
 [audio.hubert]
 model_name   = "superb/hubert-large-superb-er"

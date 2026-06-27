@@ -123,7 +123,7 @@ def _resolve_audio_cfg(CFG: dict) -> dict:
         }
     resolved = {**a, **sub, "backbone": backbone}
     # Strip nested sub-blocks from the flat view to avoid confusion later.
-    for k in ("wav2vec2emotional", "hubert"):
+    for k in ("wav2vec2emotional", "wav2vec2", "hubert"):
         resolved.pop(k, None)
     return resolved
 

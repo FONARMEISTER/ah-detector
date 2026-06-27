@@ -430,6 +430,7 @@ def build_audio_embedder(backbone: str, model_name: str, weights_path, device,
     ----------
     backbone : str
         ``"wav2vec2emotional"`` → :class:`AudioEmbedder`
+        ``"wav2vec2"``         → :class:`AudioEmbedder`  (facebook/wav2vec2-base)
         ``"hubert"``           → :class:`HuBERTEmbedder`
     """
     b = (backbone or "wav2vec2emotional").lower()
@@ -440,13 +441,13 @@ def build_audio_embedder(backbone: str, model_name: str, weights_path, device,
         sample_rate=sample_rate,
         max_length_sec=max_length_sec,
     )
-    if b == "wav2vec2emotional":
+    if b in ("wav2vec2emotional", "wav2vec2"):
         return AudioEmbedder(**kwargs)
     if b == "hubert":
         return HuBERTEmbedder(**kwargs)
     raise ValueError(
         f"Unknown audio backbone {backbone!r}.  "
-        f"Expected 'wav2vec2emotional' or 'hubert'."
+        f"Expected 'wav2vec2emotional', 'wav2vec2', or 'hubert'."
     )
 
 
